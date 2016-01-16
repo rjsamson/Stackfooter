@@ -69,9 +69,9 @@ defmodule Stackfooter.Venue do
                    account: account, symbol: symbol, original_qty: qty,
                    price: price, order_type: order_type, ts: get_timestamp}
 
-    new_orders = process_order(order, orders)
+    {new_order, new_orders} = process_order(order, orders)
 
-    {:reply, {:ok, order}, {num_orders + 1, venue, tickers, new_orders}}
+    {:reply, {:ok, new_order}, {num_orders + 1, venue, tickers, new_orders}}
   end
 
   def handle_call({:order_book, symbol}, _from, {num_orders, venue, tickers, all_orders}) do
@@ -140,47 +140,38 @@ defmodule Stackfooter.Venue do
     process_order(order, order_type, orders)
   end
 
+  # return order separately too
+
   defp process_order(order, "market", orders) do
-    case order.direction do
-      "buy" ->
-        sell_orders =
-          orders
-          |> Enum.filter(fn ord ->
-            ord.symbol == order.symbol
-          end)
-          |> Enum.filter(fn ord ->
-            ord.direction == "sell"
-          end)
-          |> Enum.filter(fn ord ->
-            ord.open
-          end)
-          |> Enum.sort(&(&1.price < &2.price))
+    matching_orders =
+      case order.direction do
+        "buy" ->
+          orders |> get_open_matching_orders("sell", order)
+        "sell" ->
+          orders |> get_open_matching_orders("buy", order)
+      end
 
-        remaining_orders = orders -- sell_orders
-        new_orders = sell_orders |> execute_market_order(order)
-        remaining_orders ++ new_orders
-      "sell" ->
-        buy_orders =
-          orders
-          |> Enum.filter(fn ord ->
-            ord.symbol == order.symbol
-          end)
-          |> Enum.filter(fn ord ->
-            ord.direction == "buy"
-          end)
-          |> Enum.filter(fn ord ->
-            ord.open
-          end)
-          |> Enum.sort(&(&1.price > &2.price))
-
-        remaining_orders = orders -- buy_orders
-        new_orders = buy_orders |> execute_market_order(order)
-        remaining_orders ++ new_orders
-    end
+    remaining_orders = orders -- matching_orders
+    {new_order, new_orders} = matching_orders |> execute_market_order(order)
+    {new_order, remaining_orders ++ new_orders}
   end
 
   defp process_order(order, _order_type, orders) do
-    orders ++ [order]
+    {order, orders ++ [order]}
+  end
+
+  defp get_open_matching_orders(orders, direction, order) do
+    orders
+    |> Enum.filter(fn ord ->
+      ord.symbol == order.symbol
+    end)
+    |> Enum.filter(fn ord ->
+      ord.direction == direction
+    end)
+    |> Enum.filter(fn ord ->
+      ord.open
+    end)
+    |> Enum.sort(&(&1.price < &2.price))
   end
 
   defp execute_market_order(sell_orders, order) do
@@ -188,11 +179,12 @@ defmodule Stackfooter.Venue do
   end
 
   defp execute_market_order([], order, updated_orders, _quantity_remaining) do
-    updated_orders ++ [Order.close(order)]
+    closed_order = Order.close(order)
+    {closed_order, updated_orders ++ [closed_order]}
   end
 
   defp execute_market_order(sell_orders, order, updated_orders, 0) do
-    sell_orders ++ updated_orders ++ [order]
+    {order, sell_orders ++ updated_orders ++ [order]}
   end
 
   defp execute_market_order([h|t] = _orders, order, updated_orders, _quantity_remaining) do

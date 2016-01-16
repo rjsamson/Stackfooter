@@ -153,16 +153,23 @@ defmodule Stackfooter.Venue do
     modified_entries |> Enum.uniq
   end
 
+  defp execute_order(matching_orders, orders, order, last_fill, close_order) do
+    remaining_orders = orders -- matching_orders
+    {new_order, new_orders, new_last_fill} = matching_orders |> execute_order_fill(order, last_fill)
+    if close_order do
+      closed_order = Order.close(new_order)
+      {closed_order, remaining_orders ++ new_orders ++ [closed_order], new_last_fill}
+    else
+      {new_order, remaining_orders ++ new_orders ++ [new_order], new_last_fill}
+    end
+  end
+
   defp process_order(%Order{order_type: order_type} = order, orders, last_fill) do
     process_order(order, order_type, orders, last_fill)
   end
 
   defp process_order(order, "market", orders, last_fill) do
-    matching_orders = orders |> get_open_matching_orders(order)
-
-    remaining_orders = orders -- matching_orders
-    {new_order, new_orders, new_last_fill} = matching_orders |> execute_order_fill(order, last_fill)
-    {new_order, remaining_orders ++ new_orders, new_last_fill}
+    orders |> get_open_matching_orders(order) |> execute_order(orders, order, last_fill, true)
   end
 
   defp process_order(order, "fill-or-kill", orders, last_fill) do
@@ -171,19 +178,17 @@ defmodule Stackfooter.Venue do
     if quantity_available < order.original_qty do
       closed_order = Order.close(order)
       {closed_order, orders ++ [closed_order], last_fill}
+    else
+      orders |> get_limit_matches(order) |> execute_order(orders, order, last_fill, true)
     end
   end
 
   defp process_order(order, "limit", orders, last_fill) do
-    {order, orders ++ [order], last_fill}
+    orders |> get_limit_matches(order) |> execute_order(orders, order, last_fill, false)
   end
 
   defp process_order(order, "immediate-or-cancel", orders, last_fill) do
-    {order, orders ++ [order], last_fill}
-  end
-
-  defp process_order(order, _order_type, orders, last_fill) do
-    {order, orders ++ [order], last_fill}
+    orders |> get_limit_matches(order) |> execute_order(orders, order, last_fill, true)
   end
 
   defp get_open_matching_orders(orders, order) do
@@ -231,12 +236,11 @@ defmodule Stackfooter.Venue do
   end
 
   defp execute_order_fill([], order, updated_orders, _quantity_remaining, last_fill) do
-    closed_order = Order.close(order)
-    {closed_order, updated_orders ++ [closed_order], last_fill}
+    {order, updated_orders, last_fill}
   end
 
   defp execute_order_fill(matching_orders, order, updated_orders, 0, last_fill) do
-    {order, matching_orders ++ updated_orders ++ [order], last_fill}
+    {order, matching_orders ++ updated_orders, last_fill}
   end
 
   defp execute_order_fill([h|t] = _orders, order, updated_orders, _quantity_remaining, _last_fill) do

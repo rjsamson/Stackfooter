@@ -24,7 +24,7 @@ defmodule Stackfooter.Venue do
 
   def start_link(venue_name, tickers) do
     last_execution = %Fill{price: ((:random.uniform(50) + 20) * 100), qty: (:random.uniform(50) + 20), ts: get_timestamp}
-    GenServer.start_link(__MODULE__, {0, last_execution, venue_name, tickers, []})
+    GenServer.start_link(__MODULE__, {0, last_execution, venue_name, tickers, []}, name: String.to_atom(venue_name))
   end
 
   def handle_call(:tickers, _from, {_, _, tickers, _} = state) do

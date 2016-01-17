@@ -22,3 +22,10 @@ Venue.order_book(venue, "NYC")
 
 Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 16, price: 0, account: "1234567", order_type: "market"})
 Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "1234567", order_type: "market"})
+
+alias Stackfooter.Venue.Ticker
+alias Stackfooter.VenueRegistry
+
+tickers = [%Ticker{name: "New York Company", symbol: "NYC"}]
+VenueRegistry.create(Stackfooter.VenueRegistry, "OBEX", tickers)
+VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")

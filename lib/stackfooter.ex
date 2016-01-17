@@ -1,4 +1,5 @@
 defmodule Stackfooter do
+  alias Stackfooter.Venue.Ticker
   use Application
 
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
@@ -13,7 +14,7 @@ defmodule Stackfooter do
       supervisor(Stackfooter.Repo, []),
       # Here you could define other workers and supervisors as children
       # worker(Stackfooter.Worker, [arg1, arg2, arg3]),
-      # worker(Stackfooter.Venue, [[]])
+      worker(Stackfooter.Venue, ["OBEX", [%Ticker{symbol: "NYC", name: "New York Company"}]])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

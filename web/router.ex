@@ -19,6 +19,13 @@ defmodule Stackfooter.Router do
     get "/", PageController, :index
   end
 
+  scope "/ob/api", Stackfooter do
+    pipe_through :api
+
+    get "/venues/:venue/heartbeat", VenueController, :heartbeat
+    get "/venues/:venue/stocks", VenueController, :stocks
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", Stackfooter do
   #   pipe_through :api

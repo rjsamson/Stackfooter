@@ -19,7 +19,7 @@ defmodule Stackfooter.VenueController do
   defp check_venue(conn, _params) do
     %{"venue" => venue_str} = conn.params
 
-    case VenueRegistry.lookup(VenueRegistry, String.upcase(venue_str)) do
+    case VenueRegistry.lookup(VenueRegistry, venue_str) do
       {:ok, venue} ->
         conn |> assign(:venue, venue)
       :error ->

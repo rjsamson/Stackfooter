@@ -7,6 +7,8 @@ defmodule Stackfooter.VenueRegistry do
   end
 
   def lookup(pid, name) when is_atom(pid) do
+    name = String.upcase(name) 
+
     case :ets.lookup(pid, name) do
       [{^name, venue}] -> {:ok, venue}
       [] -> :error
@@ -24,6 +26,8 @@ defmodule Stackfooter.VenueRegistry do
   end
 
   def handle_cast({:create, name, tickers}, {venue_names, refs}) do
+    name = String.upcase(name)
+
     case lookup(venue_names, name) do
       {:ok, _pid} ->
         {:noreply, {venue_names, refs}}

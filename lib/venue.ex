@@ -8,6 +8,10 @@ defmodule Stackfooter.Venue do
     defstruct price: 0, qty: 0, is_buy: true
   end
 
+  defmodule Ticker do
+    defstruct name: "", symbol: ""
+  end
+
   def place_order(pid, order), do: GenServer.call(pid, {:place_order, order})
 
   def order_book(pid, symbol), do: GenServer.call(pid, {:order_book, symbol})
@@ -22,17 +26,24 @@ defmodule Stackfooter.Venue do
 
   def get_quote(pid, symbol), do: GenServer.call(pid, {:get_quote, symbol})
 
+  def heartbeat(pid), do: GenServer.call(pid, :heartbeat)
+
   def start_link(venue_name, tickers) do
     last_execution = %Fill{price: ((:random.uniform(50) + 20) * 100), qty: (:random.uniform(50) + 20), ts: get_timestamp}
     GenServer.start_link(__MODULE__, {0, last_execution, venue_name, tickers, []}, name: String.to_atom(venue_name))
   end
 
-  def handle_call(:tickers, _from, {_, _, tickers, _} = state) do
-    {:reply, tickers, state}
+  def handle_call(:heartbeat, _from, {_, _, venue, _, _} = state) do
+    {:reply, {:ok, %{ok: true, venue: venue}}, state}
   end
 
-  def handle_call({:add_ticker, ticker}, _from, {num_orders, last_execution, venue, tickers, orders}) do
-    {:reply, tickers ++ [ticker], {num_orders, last_execution, venue, tickers ++ [ticker], orders}}
+  def handle_call(:tickers, _from, {_, _, _, tickers, _} = state) do
+    {:reply, {:ok, tickers}, state}
+  end
+
+  def handle_call({:add_ticker, {symbol, name}}, _from, {num_orders, last_execution, venue, tickers, orders}) do
+    ticker = %Ticker{symbol: symbol, name: name}
+    {:reply, {:ok, tickers ++ [ticker]}, {num_orders, last_execution, venue, tickers ++ [ticker], orders}}
   end
 
   def handle_call({:get_quote, symbol}, _from, {num_orders, last_execution, venue, tickers, orders}) do

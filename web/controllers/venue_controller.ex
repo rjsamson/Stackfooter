@@ -1,44 +1,31 @@
 defmodule Stackfooter.VenueController do
-  alias Stackfooter.Venue
   use Stackfooter.Web, :controller
 
-  def heartbeat(conn, %{"venue" => venue}) do
-    venue_atom = String.upcase(venue) |> String.to_atom
+  plug :check_venue when action in [:heartbeat, :stocks]
 
-    try do
-      {:ok, %{venue: hb_venue}} = Venue.heartbeat(venue_atom)
-      render conn, "heartbeat.json", %{venue: String.upcase(hb_venue)}
-    catch
-      _,_ ->
-        put_status(conn, 404)
-        |> render("heartbeat.json", %{error: "404", venue: String.upcase(venue)})
-    end
+  alias Stackfooter.Venue
+  alias Stackfooter.VenueRegistry
+
+  def heartbeat(conn, %{"venue" => venue}) do
+    {:ok, %{venue: hb_venue}} = Venue.heartbeat(conn.assigns[:venue])
+    render conn, "heartbeat.json", %{venue: String.upcase(hb_venue)}
   end
 
   def stocks(conn, %{"venue" => venue}) do
-    venue_atom = String.upcase(venue) |> String.to_atom
-
-    try do
-      {:ok, tickers} = Venue.tickers(venue_atom)
-      render conn, "stocks.json", %{tickers: tickers}
-    catch
-      _,_ ->
-        put_status(conn, 404)
-        |> render("heartbeat.json", %{error: "404", venue: String.upcase(venue)})
-    end
+    {:ok, tickers} = Venue.tickers(conn.assigns[:venue])
+    render conn, "stocks.json", %{tickers: tickers}
   end
 
-  # defp check_venue(conn, _params) do
-  #   %{"venue" => venue} = conn.params
-  #   venue_atom = String.upcase(venue) |> String.to_atom
-  #
-  #   try do
-  #     {:ok, %{venue: hb_venue}} = Venue.heartbeat(venue_atom)
-  #     conn
-  #   catch
-  #     _,_ ->
-  #       render conn, "heartbeat.json", %{error: "404", venue: String.upcase(venue)}
-  #       halt(conn)
-  #   end
-  # end
+  defp check_venue(conn, _params) do
+    %{"venue" => venue_str} = conn.params
+
+    case VenueRegistry.lookup(VenueRegistry, String.upcase(venue_str)) do
+      {:ok, venue} ->
+        conn |> assign(:venue, venue)
+      :error ->
+        put_status(conn, 404)
+        |> json(%{ok: false, error: "No venue exists with the symbol #{String.upcase(venue_str)}."})
+        |> halt()
+    end
+  end
 end

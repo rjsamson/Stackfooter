@@ -28,4 +28,4 @@ alias Stackfooter.VenueRegistry
 
 tickers = [%Ticker{name: "New York Company", symbol: "NYC"}]
 VenueRegistry.create(Stackfooter.VenueRegistry, "OBEX", tickers)
-VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
+{:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")

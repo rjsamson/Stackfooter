@@ -1,6 +1,15 @@
 alias Stackfooter.Venue
+alias Stackfooter.Venue.Ticker
+alias Stackfooter.VenueRegistry
 
-{:ok, venue} = Venue.start_link("OBEX", ["NYC"])
+nyc_tickers = [%Ticker{name: "New York Company", symbol: "NYC"}]
+VenueRegistry.create(Stackfooter.VenueRegistry, "OBEX", nyc_tickers)
+foo_tickers = [%Ticker{name: "Foo Fighters International", symbol: "FOO"}]
+VenueRegistry.create(Stackfooter.VenueRegistry, "TESTEX", foo_tickers)
+
+{:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
+{:ok, testex} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "TESTEX")
+
 
 # Limit sell
 
@@ -22,10 +31,3 @@ Venue.order_book(venue, "NYC")
 
 Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 16, price: 0, account: "1234567", order_type: "market"})
 Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "1234567", order_type: "market"})
-
-alias Stackfooter.Venue.Ticker
-alias Stackfooter.VenueRegistry
-
-tickers = [%Ticker{name: "New York Company", symbol: "NYC"}]
-VenueRegistry.create(Stackfooter.VenueRegistry, "OBEX", tickers)
-{:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")

@@ -25,6 +25,7 @@ defmodule Stackfooter.Router do
     get "/venues/:venue/heartbeat", VenueController, :heartbeat
     get "/venues/:venue/stocks", VenueController, :stocks
     get "/venues/:venue/stocks/:stock", VenueController, :orderbook
+    get "/venues/:venue/stocks/:stock/quote", VenueController, :get_quote
   end
 
   # Other scopes may use custom stacks.

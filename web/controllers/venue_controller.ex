@@ -22,6 +22,11 @@ defmodule Stackfooter.VenueController do
     conn |> json(orderbook)
   end
 
+  def get_quote(conn, %{"venue" => venue, "stock" => stock}) do
+    {:ok, stock_quote} = Venue.get_quote(conn.assigns[:venue], stock)
+    conn |> json(stock_quote)
+  end
+
   defp check_venue(conn, _params) do
     %{"venue" => venue_str} = conn.params
 

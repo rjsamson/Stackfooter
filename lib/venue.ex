@@ -20,6 +20,8 @@ defmodule Stackfooter.Venue do
 
   def order_status(pid, order_id, account), do: GenServer.call(pid, {:order_status, order_id, String.upcase(account)})
 
+  def all_orders(pid, account), do: GenServer.call(pid, {:all_orders, String.upcase(account)})
+
   def tickers(pid), do: GenServer.call(pid, :tickers)
 
   def add_ticker(pid, ticker), do: GenServer.call(pid, {:add_ticker, String.upcase(ticker)})
@@ -84,12 +86,20 @@ defmodule Stackfooter.Venue do
           order.fills
           |> Enum.map(fn fill -> %{price: fill.price, qty: fill.qty, ts: fill.ts} end)
 
-        order_status = %{ok: true, symbol: order.symbol, venue: venue, direction: order.direction, originalQty: order.original_qty, qty: Order.quantity_remaining(order), price: order.price, orderType: order.order_type, id: order.id, account: order.account, ts: order.ts, fills: order_fills, totalFilled: order.total_filled, open: order.open}
+        order_status = %{ok: true, symbol: order.symbol, venue: venue, direction: order.direction, originalQty: order.originalQty, qty: Order.quantity_remaining(order), price: order.price, orderType: order.orderType, id: order.id, account: order.account, ts: order.ts, fills: order_fills, totalFilled: order.totalFilled, open: order.open}
 
         {:reply, {:ok, order_status}, state}
       true ->
         {:reply, {:error, %{ok: false, error: "Only account owner can access that order"}}, state}
     end
+  end
+
+  def handle_call({:all_orders, account}, _from, {_, _, venue, _, orders} = state) do
+    orders =
+      orders
+      |> Enum.filter(fn order -> order.account == account end)
+
+    {:reply, {:ok, orders}, state}
   end
 
   def handle_call({:cancel_order, order_id, account}, _from, {num_orders, last_executions, venue, tickers, orders}) do
@@ -110,12 +120,12 @@ defmodule Stackfooter.Venue do
     end
   end
 
-  def handle_call({:place_order, %{direction: direction, account: account, symbol: symbol, qty: qty, order_type: order_type, price: price} = _order_info}, _from, {num_orders, last_executions, venue, tickers, orders}) do
+  def handle_call({:place_order, %{direction: direction, account: account, symbol: symbol, qty: qty, orderType: orderType, price: price} = _order_info}, _from, {num_orders, last_executions, venue, tickers, orders}) do
     account = String.upcase(account)
     order_id = num_orders + 1
     order = %Order{id: order_id, direction: direction, venue: venue,
-                   account: account, symbol: symbol, original_qty: qty,
-                   price: price, order_type: order_type, ts: get_timestamp}
+                   account: account, symbol: symbol, originalQty: qty,
+                   price: price, orderType: orderType, ts: get_timestamp}
 
     {new_order, new_orders, new_last_executions} = process_order(order, orders, last_executions)
 
@@ -192,8 +202,8 @@ defmodule Stackfooter.Venue do
     end
   end
 
-  defp process_order(%Order{order_type: order_type} = order, orders, last_fills) do
-    process_order(order, order_type, orders, last_fills)
+  defp process_order(%Order{orderType: orderType} = order, orders, last_fills) do
+    process_order(order, orderType, orders, last_fills)
   end
 
   defp process_order(order, "market", orders, last_fills) do
@@ -203,7 +213,7 @@ defmodule Stackfooter.Venue do
   defp process_order(order, "fill-or-kill", orders, last_fills) do
     quantity_available = matching_quantity_available(orders, order)
 
-    if quantity_available < order.original_qty do
+    if quantity_available < order.originalQty do
       closed_order = Order.close(order)
       {closed_order, orders ++ [closed_order], last_fills}
     else

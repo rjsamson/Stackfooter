@@ -35,6 +35,18 @@ defmodule Stackfooter.VenueController do
     end
   end
 
+  def all_orders(conn, %{"venue" => venue, "account" => account}) do
+    account = String.upcase(account)
+    venue = String.upcase(venue
+) 
+    if account == conn.assigns[:account] do
+      {:ok, orders} = Venue.all_orders(conn.assigns[:venue], account)
+      conn |> json(%{"ok" => true, "venue" => venue, "orders" => orders})
+    else
+      conn |> put_status(401) |> json(%{"ok" => false, "error" => "Not authorized to access details about that account's orders."})
+    end
+  end
+
   defp check_venue(conn, _params) do
     %{"venue" => venue_str} = conn.params
 

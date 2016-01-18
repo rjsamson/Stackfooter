@@ -17,22 +17,22 @@ VenueRegistry.create(Stackfooter.VenueRegistry, "TESTEX", foo_tickers)
 
 # Limit sell
 
-Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 7, price: 7100, account: "rjsamson", order_type: "limit"})
-Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 9, price: 7200, account: "rjsamson", order_type: "limit"})
-Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 10, price: 7500, account: "rjsamson", order_type: "limit"})
-Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 21, price: 7900, account: "rjsamson", order_type: "limit"})
+Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 7, price: 7100, account: "rjsamson", orderType: "limit"})
+Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 9, price: 7200, account: "rjsamson", orderType: "limit"})
+Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 10, price: 7500, account: "rjsamson", orderType: "limit"})
+Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 21, price: 7900, account: "rjsamson", orderType: "limit"})
 
 # Limit buy
 
-Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 7, price: 7800, account: "rjsamson", order_type: "limit"})
-Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 9, price: 7400, account: "rjsamson", order_type: "limit"})
-Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 10, price: 7120, account: "rjsamson", order_type: "limit"})
-Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 21, price: 7970, account: "rjsamson", order_type: "limit"})
+Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 7, price: 7800, account: "rjsamson", orderType: "limit"})
+Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 9, price: 7400, account: "rjsamson", orderType: "limit"})
+Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 10, price: 7120, account: "rjsamson", orderType: "limit"})
+Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 21, price: 7970, account: "rjsamson", orderType: "limit"})
 
 Venue.order_book(venue, "NYC")
 Venue.get_quote(venue, "NYC")
 
 # Market buy/sell
 
-Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 16, price: 0, account: "rjsamson", order_type: "market"})
-Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "rjsamson", order_type: "market"})
+Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 16, price: 0, account: "rjsamson", orderType: "market"})
+Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "rjsamson", orderType: "market"})

@@ -11,7 +11,7 @@ defmodule Stackfooter.ApiKeyRegistry do
   end
 
   def add_key(pid, api_key, account) do
-    GenServer.call(pid, {:add_key, api_key, account})
+    GenServer.call(pid, {:add_key, api_key, String.upcase(account)})
   end
 
   def lookup(pid, api_key) when is_atom(pid) do

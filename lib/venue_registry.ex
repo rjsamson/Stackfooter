@@ -16,7 +16,7 @@ defmodule Stackfooter.VenueRegistry do
   end
 
   def create(pid, name, tickers) do
-    GenServer.cast(pid, {:create, name, tickers})
+    GenServer.call(pid, {:create, name, tickers})
   end
 
   def init(table) do
@@ -24,17 +24,17 @@ defmodule Stackfooter.VenueRegistry do
     {:ok, venue_names}
   end
 
-  def handle_cast({:create, name, tickers}, venue_names) do
+  def handle_call({:create, name, tickers}, _from, venue_names) do
     name = String.upcase(name)
 
     case lookup(venue_names, name) do
-      {:ok, _pid} ->
-        {:noreply, venue_names}
+      {:ok, pid} ->
+        {:reply, {:ok, pid}, venue_names}
       :error ->
         {:ok, pid} = Supervisor.start_child(Stackfooter.Venue.Supervisor, [name, tickers])
         name_atom = String.to_atom(name)
         :ets.insert(venue_names, {name, name_atom})
-        {:noreply, venue_names}
+        {:reply, {:ok, name_atom}, venue_names}
     end
   end
 end

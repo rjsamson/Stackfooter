@@ -31,3 +31,7 @@ Venue.order_book(venue, "NYC")
 
 Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 16, price: 0, account: "1234567", order_type: "market"})
 Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "1234567", order_type: "market"})
+
+Stackfooter.ApiKeyRegistry.add_key(Stackfooter.ApiKeyRegistry, "I1kaUrr1SN6HK6i870d54awmLlk76d06", "rjsamson")
+Stackfooter.ApiKeyRegistry.add_key(Stackfooter.ApiKeyRegistry, "SO68190NJ47of2p7he37tGY1sBKPI85F", "account2")
+Stackfooter.ApiKeyRegistry.add_key(Stackfooter.ApiKeyRegistry, "7O4fvT212gU2p1gu7v6aM25oI1rfbimg", "account3")

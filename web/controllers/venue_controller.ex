@@ -1,6 +1,7 @@
 defmodule Stackfooter.VenueController do
   use Stackfooter.Web, :controller
 
+  plug Stackfooter.Plugs.Api.Authenticate
   plug :check_venue when action in [:heartbeat, :stocks]
 
   alias Stackfooter.Venue

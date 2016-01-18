@@ -14,7 +14,8 @@ defmodule Stackfooter do
       supervisor(Stackfooter.Venue.Supervisor, []),
       # Here you could define other workers and supervisors as children
       # worker(Stackfooter.Worker, [arg1, arg2, arg3]),
-      worker(Stackfooter.VenueRegistry, [Stackfooter.VenueRegistry])
+      worker(Stackfooter.VenueRegistry, [Stackfooter.VenueRegistry]),
+      worker(Stackfooter.ApiKeyRegistry, [Stackfooter.ApiKeyRegistry])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

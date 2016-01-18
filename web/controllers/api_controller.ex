@@ -4,3 +4,4 @@ defmodule Stackfooter.ApiController do
   def heartbeat(conn, _params) do
     conn |> json(%{"ok" => true, "error" => ""})
   end
+end

@@ -2,7 +2,7 @@ defmodule Stackfooter.VenueController do
   use Stackfooter.Web, :controller
 
   plug Stackfooter.Plugs.Api.Authenticate
-  plug :check_venue when action in [:heartbeat, :stocks]
+  plug :check_venue
 
   alias Stackfooter.Venue
   alias Stackfooter.VenueRegistry
@@ -15,6 +15,12 @@ defmodule Stackfooter.VenueController do
   def stocks(conn, %{"venue" => venue}) do
     {:ok, tickers} = Venue.tickers(conn.assigns[:venue])
     render conn, "stocks.json", %{tickers: tickers}
+  end
+
+  def orderbook(conn, %{"venue" => venue, "stock" => stock}) do
+    IO.inspect conn
+    {:ok, orderbook} = Venue.order_book(conn.assigns[:venue], stock)
+    conn |> json(orderbook)
   end
 
   defp check_venue(conn, _params) do

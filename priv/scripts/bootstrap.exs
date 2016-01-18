@@ -12,6 +12,3 @@ nyc_tickers = [%Ticker{name: "New York Company", symbol: "NYC"}]
 VenueRegistry.create(Stackfooter.VenueRegistry, "OBEX", nyc_tickers)
 foo_tickers = [%Ticker{name: "Foo Fighters International", symbol: "FOO"}]
 VenueRegistry.create(Stackfooter.VenueRegistry, "TESTEX", foo_tickers)
-
-{:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
-{:ok, testex} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "TESTEX")

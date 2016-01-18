@@ -22,6 +22,7 @@ defmodule Stackfooter.Router do
   scope "/ob/api", Stackfooter do
     pipe_through :api
 
+    get "/heartbeat", ApiController, :heartbeat
     get "/venues/:venue/heartbeat", VenueController, :heartbeat
     get "/venues/:venue/stocks", VenueController, :stocks
     get "/venues/:venue/stocks/:stock", VenueController, :orderbook

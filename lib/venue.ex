@@ -14,17 +14,17 @@ defmodule Stackfooter.Venue do
 
   def place_order(pid, order), do: GenServer.call(pid, {:place_order, order})
 
-  def order_book(pid, symbol), do: GenServer.call(pid, {:order_book, symbol})
+  def order_book(pid, symbol), do: GenServer.call(pid, {:order_book, String.upcase(symbol)})
 
-  def cancel_order(pid, order_id, account), do: GenServer.call(pid, {:cancel_order, order_id, account})
+  def cancel_order(pid, order_id, account), do: GenServer.call(pid, {:cancel_order, order_id, String.upcase(account)})
 
-  def order_status(pid, order_id, account), do: GenServer.call(pid, {:order_status, order_id, account})
+  def order_status(pid, order_id, account), do: GenServer.call(pid, {:order_status, order_id, String.upcase(account)})
 
   def tickers(pid), do: GenServer.call(pid, :tickers)
 
-  def add_ticker(pid, ticker), do: GenServer.call(pid, {:add_ticker, ticker})
+  def add_ticker(pid, ticker), do: GenServer.call(pid, {:add_ticker, String.upcase(ticker)})
 
-  def get_quote(pid, symbol), do: GenServer.call(pid, {:get_quote, symbol})
+  def get_quote(pid, symbol), do: GenServer.call(pid, {:get_quote, String.upcase(symbol)})
 
   def heartbeat(pid), do: GenServer.call(pid, :heartbeat)
 
@@ -92,6 +92,7 @@ defmodule Stackfooter.Venue do
   end
 
   def handle_call({:place_order, %{direction: direction, account: account, symbol: symbol, qty: qty, order_type: order_type, price: price} = _order_info}, _from, {num_orders, last_execution, venue, tickers, orders}) do
+    account = String.upcase(account)
     order_id = num_orders + 1
     order = %Order{id: order_id, direction: direction, venue: venue,
                    account: account, symbol: symbol, original_qty: qty,

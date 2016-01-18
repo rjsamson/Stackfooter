@@ -37,10 +37,23 @@ defmodule Stackfooter.VenueController do
 
   def all_orders(conn, %{"venue" => venue, "account" => account}) do
     account = String.upcase(account)
-    venue = String.upcase(venue
-) 
+    venue = String.upcase(venue)
+
     if account == conn.assigns[:account] do
       {:ok, orders} = Venue.all_orders(conn.assigns[:venue], account)
+      conn |> json(%{"ok" => true, "venue" => venue, "orders" => orders})
+    else
+      conn |> put_status(401) |> json(%{"ok" => false, "error" => "Not authorized to access details about that account's orders."})
+    end
+  end
+
+  def all_orders_stock(conn, %{"venue" => venue, "account" => account, "stock" => stock}) do
+    account = String.upcase(account)
+    venue = String.upcase(venue)
+    stock = String.upcase(stock)
+
+    if account == conn.assigns[:account] do
+      {:ok, orders} = Venue.all_orders_stock(conn.assigns[:venue], account, stock)
       conn |> json(%{"ok" => true, "venue" => venue, "orders" => orders})
     else
       conn |> put_status(401) |> json(%{"ok" => false, "error" => "Not authorized to access details about that account's orders."})

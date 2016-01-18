@@ -22,6 +22,8 @@ defmodule Stackfooter.Venue do
 
   def all_orders(pid, account), do: GenServer.call(pid, {:all_orders, String.upcase(account)})
 
+  def all_orders_stock(pid, account, stock), do: GenServer.call(pid, {:all_orders_stock, String.upcase(account), String.upcase(stock)})
+
   def tickers(pid), do: GenServer.call(pid, :tickers)
 
   def add_ticker(pid, ticker), do: GenServer.call(pid, {:add_ticker, String.upcase(ticker)})
@@ -102,6 +104,14 @@ defmodule Stackfooter.Venue do
     {:reply, {:ok, orders}, state}
   end
 
+  def handle_call({:all_orders_stock, account, stock}, _from, {_, _, venue, _, orders} = state) do
+    orders =
+      orders
+      |> Enum.filter(fn order -> order.account == account && order.symbol == stock end)
+
+    {:reply, {:ok, orders}, state}
+  end
+
   def handle_call({:cancel_order, order_id, account}, _from, {num_orders, last_executions, venue, tickers, orders}) do
     order_to_cancel =
       orders
@@ -122,7 +132,12 @@ defmodule Stackfooter.Venue do
 
   def handle_call({:place_order, %{direction: direction, account: account, symbol: symbol, qty: qty, orderType: orderType, price: price} = _order_info}, _from, {num_orders, last_executions, venue, tickers, orders}) do
     account = String.upcase(account)
+    symbol = String.upcase(symbol)
+    venue = String.upcase(venue)
+    direction = String.downcase(direction)
+    orderType = String.downcase(orderType)
     order_id = num_orders + 1
+
     order = %Order{id: order_id, direction: direction, venue: venue,
                    account: account, symbol: symbol, originalQty: qty,
                    price: price, orderType: orderType, ts: get_timestamp}

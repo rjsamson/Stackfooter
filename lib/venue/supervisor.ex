@@ -7,7 +7,7 @@ defmodule Stackfooter.Venue.Supervisor do
 
   def init(_opts) do
     children = [
-      worker(Stackfooter.Venue, [], restart: :temporary)
+      worker(Stackfooter.Venue, [], restart: :transient)
     ]
 
     supervise(children, strategy: :simple_one_for_one)

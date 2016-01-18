@@ -9,12 +9,13 @@ defmodule Stackfooter.VenueController do
 
   def heartbeat(conn, %{"venue" => venue}) do
     {:ok, %{venue: hb_venue}} = Venue.heartbeat(conn.assigns[:venue])
-    render conn, "heartbeat.json", %{venue: String.upcase(hb_venue)}
+    conn |> json(%{ok: true, venue: String.upcase(hb_venue)})
   end
 
   def stocks(conn, %{"venue" => venue}) do
     {:ok, tickers} = Venue.tickers(conn.assigns[:venue])
-    render conn, "stocks.json", %{tickers: tickers}
+    conn |> json(%{ok: true, symbols: tickers})
+    # render conn, "stocks.json", %{tickers: tickers}
   end
 
   def orderbook(conn, %{"venue" => venue, "stock" => stock}) do

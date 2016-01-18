@@ -19,7 +19,7 @@ VenueRegistry.create(Stackfooter.VenueRegistry, "TESTEX", foo_tickers)
 
 Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 7, price: 7100, account: "rjsamson", order_type: "limit"})
 Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 9, price: 7200, account: "rjsamson", order_type: "limit"})
-Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 10, price: 7000, account: "rjsamson", order_type: "limit"})
+Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 10, price: 7500, account: "rjsamson", order_type: "limit"})
 Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 21, price: 7900, account: "rjsamson", order_type: "limit"})
 
 # Limit buy
@@ -30,6 +30,7 @@ Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 10, price: 7120
 Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 21, price: 7970, account: "rjsamson", order_type: "limit"})
 
 Venue.order_book(venue, "NYC")
+Venue.get_quote(venue, "NYC")
 
 # Market buy/sell
 

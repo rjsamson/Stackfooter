@@ -253,11 +253,11 @@ defmodule Stackfooter.Venue do
     case direction do
       "buy" ->
         get_open_matching_orders(orders, order) |> Enum.filter(fn ord ->
-          ord.price <= order.price
+          ord.price >= order.price
         end)
       "sell" ->
         get_open_matching_orders(orders, order) |> Enum.filter(fn ord ->
-          ord.price >= order.price
+          ord.price <= order.price
         end)
     end
   end

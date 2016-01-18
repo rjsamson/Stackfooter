@@ -1,3 +1,5 @@
+# Run this to initialize a set of demo venues / accounts
+
 alias Stackfooter.Venue
 alias Stackfooter.Venue.Ticker
 alias Stackfooter.VenueRegistry
@@ -14,6 +16,8 @@ VenueRegistry.create(Stackfooter.VenueRegistry, "TESTEX", foo_tickers)
 {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
 {:ok, testex} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "TESTEX")
 
+
+# Sample Orders
 
 # Limit sell
 

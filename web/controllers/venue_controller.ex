@@ -18,7 +18,6 @@ defmodule Stackfooter.VenueController do
   end
 
   def orderbook(conn, %{"venue" => venue, "stock" => stock}) do
-    IO.inspect conn
     {:ok, orderbook} = Venue.order_book(conn.assigns[:venue], stock)
     conn |> json(orderbook)
   end

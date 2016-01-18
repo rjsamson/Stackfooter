@@ -27,6 +27,14 @@ defmodule Stackfooter.VenueController do
     conn |> json(stock_quote)
   end
 
+  def order_status(conn, %{"venue" => venue, "stock" => stock, "id" => order_id}) do
+    order_id = String.to_integer(order_id)
+    case Venue.order_status(conn.assigns[:venue], order_id, conn.assigns[:account]) do
+      {:ok, stock_quote} -> conn |> json(stock_quote)
+      {:error, msg} -> conn |> json(msg)
+    end
+  end
+
   defp check_venue(conn, _params) do
     %{"venue" => venue_str} = conn.params
 

@@ -60,16 +60,25 @@ defmodule Stackfooter.Venue do
     {:reply, {:ok, stock_quote}, {num_orders, last_execution, venue, tickers, orders}}
   end
 
-  def handle_call({:order_status, order_id, account}, _from, {_, _, _, _, orders} = state) do
+  def handle_call({:order_status, order_id, account}, _from, {_, _, venue, _, orders} = state) do
     order =
       orders
       |> Enum.filter(fn order -> order.id == order_id end)
       |> List.first
 
-    if order.account == account do
-      {:reply, {:ok, order}, state}
-    else
-      {:reply, {:error, "Only account owner can access that order"}, state}
+    cond do
+      order == nil ->
+        {:reply, {:error, %{ok: false, error: "No order with that id / account"}}, state}
+      order.account == account ->
+        order_fills =
+          order.fills
+          |> Enum.map(fn fill -> %{price: fill.price, qty: fill.qty, ts: fill.ts} end)
+
+        order_status = %{ok: true, symbol: order.symbol, venue: venue, direction: order.direction, originalQty: order.original_qty, qty: Order.quantity_remaining(order), price: order.price, orderType: order.order_type, id: order.id, account: order.account, ts: order.ts, fills: order_fills, totalFilled: order.total_filled, open: order.open}
+
+        {:reply, {:ok, order_status}, state}
+      true ->
+        {:reply, {:error, %{ok: false, error: "Only account owner can access that order"}}, state}
     end
   end
 

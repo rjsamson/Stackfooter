@@ -29,8 +29,12 @@ defmodule Stackfooter.Venue do
   def heartbeat(pid), do: GenServer.call(pid, :heartbeat)
 
   def start_link(venue_name, tickers) do
-    last_execution = %Fill{price: ((:random.uniform(50) + 20) * 100), qty: (:random.uniform(50) + 20), ts: get_timestamp}
-    GenServer.start_link(__MODULE__, {0, last_execution, venue_name, tickers, []}, name: String.to_atom(venue_name))
+    last_executions = %{}
+    Enum.each(tickers, fn ticker ->
+      Map.put(last_executions, ticker.symbol, %Fill{price: ((:random.uniform(50) + 20) * 100), qty: (:random.uniform(50) + 20), ts: get_timestamp})
+    end)
+
+    GenServer.start_link(__MODULE__, {0, last_executions, venue_name, tickers, []}, name: String.to_atom(venue_name))
   end
 
   def handle_call(:heartbeat, _from, {_, _, venue, _, _} = state) do
@@ -46,7 +50,13 @@ defmodule Stackfooter.Venue do
     {:reply, {:ok, tickers ++ [ticker]}, {num_orders, last_execution, venue, tickers ++ [ticker], orders}}
   end
 
-  def handle_call({:get_quote, symbol}, _from, {num_orders, last_execution, venue, tickers, orders}) do
+  def handle_call({:get_quote, symbol}, _from, {_num_orders, last_executions, venue, _tickers, orders} = state) do
+
+    orders = Enum.filter(orders, fn order ->
+      order.symbol == symbol
+    end)
+
+    last_execution = last_executions[symbol]
     bid_info = bid_ask_info(orders, symbol, "buy")
     ask_info = bid_ask_info(orders, symbol, "sell")
 
@@ -57,7 +67,7 @@ defmodule Stackfooter.Venue do
               "lastSize" => last_execution.qty, "lastTrade" => last_execution.ts,
               "quoteTime" => get_timestamp}
 
-    {:reply, {:ok, stock_quote}, {num_orders, last_execution, venue, tickers, orders}}
+    {:reply, {:ok, stock_quote}, state}
   end
 
   def handle_call({:order_status, order_id, account}, _from, {_, _, venue, _, orders} = state) do
@@ -82,7 +92,7 @@ defmodule Stackfooter.Venue do
     end
   end
 
-  def handle_call({:cancel_order, order_id, account}, _from, {num_orders, last_execution, venue, tickers, orders}) do
+  def handle_call({:cancel_order, order_id, account}, _from, {num_orders, last_executions, venue, tickers, orders}) do
     order_to_cancel =
       orders
       |> Enum.filter(fn order -> order.id == order_id end)
@@ -90,29 +100,29 @@ defmodule Stackfooter.Venue do
 
     cond do
       order_id > num_orders ->
-        {:reply, {:error, "Highest order id is #{num_orders}"}, {num_orders, last_execution, venue, tickers, orders}}
+        {:reply, {:error, "Highest order id is #{num_orders}"}, {num_orders, last_executions, venue, tickers, orders}}
       order_to_cancel.account == account ->
         new_orders = orders |> Enum.reject(fn order -> order.id == order_id end)
         cancelled_order = %{order_to_cancel | open: false}
-        {:reply, {:ok, "Order cancelled"}, {num_orders, last_execution, venue, tickers, new_orders ++ [cancelled_order]}}
+        {:reply, {:ok, "Order cancelled"}, {num_orders, last_executions, venue, tickers, new_orders ++ [cancelled_order]}}
       order_to_cancel.account != account ->
-        {:reply, {:error, "Only account " <> order_to_cancel.account <> " can cancel that order"}, {num_orders, last_execution, venue, tickers, orders}}
+        {:reply, {:error, "Only account " <> order_to_cancel.account <> " can cancel that order"}, {num_orders, last_executions, venue, tickers, orders}}
     end
   end
 
-  def handle_call({:place_order, %{direction: direction, account: account, symbol: symbol, qty: qty, order_type: order_type, price: price} = _order_info}, _from, {num_orders, last_execution, venue, tickers, orders}) do
+  def handle_call({:place_order, %{direction: direction, account: account, symbol: symbol, qty: qty, order_type: order_type, price: price} = _order_info}, _from, {num_orders, last_executions, venue, tickers, orders}) do
     account = String.upcase(account)
     order_id = num_orders + 1
     order = %Order{id: order_id, direction: direction, venue: venue,
                    account: account, symbol: symbol, original_qty: qty,
                    price: price, order_type: order_type, ts: get_timestamp}
 
-    {new_order, new_orders, new_last_execution} = process_order(order, orders, last_execution)
+    {new_order, new_orders, new_last_executions} = process_order(order, orders, last_executions)
 
-    {:reply, {:ok, new_order}, {num_orders + 1, new_last_execution, venue, tickers, new_orders}}
+    {:reply, {:ok, new_order}, {num_orders + 1, new_last_executions, venue, tickers, new_orders}}
   end
 
-  def handle_call({:order_book, symbol}, _from, {num_orders, last_execution, venue, tickers, all_orders}) do
+  def handle_call({:order_book, symbol}, _from, {num_orders, last_executions, venue, tickers, all_orders}) do
     orders =
       all_orders
       |> Enum.filter(fn order ->
@@ -152,7 +162,7 @@ defmodule Stackfooter.Venue do
 
     order_book = %{"ok" => true, "venue" => venue, "symbol" => symbol, "bids" => bids, "asks" => asks, "ts" => get_timestamp}
 
-    {:reply, {:ok, order_book}, {num_orders, last_execution, venue, tickers, all_orders}}
+    {:reply, {:ok, order_book}, {num_orders, last_executions, venue, tickers, all_orders}}
   end
 
   defp consolidate_entries(entries) do
@@ -185,31 +195,31 @@ defmodule Stackfooter.Venue do
     end
   end
 
-  defp process_order(%Order{order_type: order_type} = order, orders, last_fill) do
-    process_order(order, order_type, orders, last_fill)
+  defp process_order(%Order{order_type: order_type} = order, orders, last_fills) do
+    process_order(order, order_type, orders, last_fills)
   end
 
-  defp process_order(order, "market", orders, last_fill) do
-    orders |> get_open_matching_orders(order) |> execute_order(orders, order, last_fill, true)
+  defp process_order(order, "market", orders, last_fills) do
+    orders |> get_open_matching_orders(order) |> execute_order(orders, order, last_fills, true)
   end
 
-  defp process_order(order, "fill-or-kill", orders, last_fill) do
+  defp process_order(order, "fill-or-kill", orders, last_fills) do
     quantity_available = matching_quantity_available(orders, order)
 
     if quantity_available < order.original_qty do
       closed_order = Order.close(order)
-      {closed_order, orders ++ [closed_order], last_fill}
+      {closed_order, orders ++ [closed_order], last_fills}
     else
-      orders |> get_limit_matches(order) |> execute_order(orders, order, last_fill, true)
+      orders |> get_limit_matches(order) |> execute_order(orders, order, last_fills, true)
     end
   end
 
-  defp process_order(order, "limit", orders, last_fill) do
-    orders |> get_limit_matches(order) |> execute_order(orders, order, last_fill, false)
+  defp process_order(order, "limit", orders, last_fills) do
+    orders |> get_limit_matches(order) |> execute_order(orders, order, last_fills, false)
   end
 
-  defp process_order(order, "immediate-or-cancel", orders, last_fill) do
-    orders |> get_limit_matches(order) |> execute_order(orders, order, last_fill, true)
+  defp process_order(order, "immediate-or-cancel", orders, last_fills) do
+    orders |> get_limit_matches(order) |> execute_order(orders, order, last_fills, true)
   end
 
   defp get_open_matching_orders(orders, order) do
@@ -252,19 +262,19 @@ defmodule Stackfooter.Venue do
     end
   end
 
-  defp execute_order_fill(matching_orders, order, last_fill) do
-    execute_order_fill(matching_orders, order, [], Order.quantity_remaining(order), last_fill)
+  defp execute_order_fill(matching_orders, order, last_fills) do
+    execute_order_fill(matching_orders, order, [], Order.quantity_remaining(order), last_fills)
   end
 
-  defp execute_order_fill([], order, updated_orders, _quantity_remaining, last_fill) do
-    {order, updated_orders, last_fill}
+  defp execute_order_fill([], order, updated_orders, _quantity_remaining, last_fills) do
+    {order, updated_orders, last_fills}
   end
 
-  defp execute_order_fill(matching_orders, order, updated_orders, 0, last_fill) do
-    {order, matching_orders ++ updated_orders, last_fill}
+  defp execute_order_fill(matching_orders, order, updated_orders, 0, last_fills) do
+    {order, matching_orders ++ updated_orders, last_fills}
   end
 
-  defp execute_order_fill([h|t] = _orders, order, updated_orders, _quantity_remaining, _last_fill) do
+  defp execute_order_fill([h|t] = _orders, order, updated_orders, _quantity_remaining, last_fills) do
     qty_available_from_match = Order.quantity_remaining(h)
     qty_remaining_to_trade = Order.quantity_remaining(order)
     qty_to_execute = calculate_fill_quantity(qty_remaining_to_trade, qty_available_from_match)
@@ -276,7 +286,8 @@ defmodule Stackfooter.Venue do
     updated_order = Order.add_fill_to_order(order, fill)
     updated_matching_order = Order.add_fill_to_order(h, fill)
 
-    execute_order_fill(t, updated_order, updated_orders ++ [updated_matching_order], Order.quantity_remaining(updated_order), fill)
+    last_fills = Map.put(last_fills, order.symbol, fill)
+    execute_order_fill(t, updated_order, updated_orders ++ [updated_matching_order], Order.quantity_remaining(updated_order), last_fills)
   end
 
   defp trade_price(order1, order2) do

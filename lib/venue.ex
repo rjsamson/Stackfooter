@@ -53,7 +53,7 @@ defmodule Stackfooter.Venue do
   def handle_call({:get_quote, symbol}, _from, {_num_orders, last_executions, venue, _tickers, orders} = state) do
 
     orders = Enum.filter(orders, fn order ->
-      order.symbol == symbol
+      order.open && order.symbol == symbol
     end)
 
     last_execution = last_executions[symbol]
@@ -126,10 +126,7 @@ defmodule Stackfooter.Venue do
     orders =
       all_orders
       |> Enum.filter(fn order ->
-        order.symbol == symbol
-      end)
-      |> Enum.filter(fn order ->
-        order.open
+        order.open && order.symbol == symbol
       end)
 
     bids =
@@ -227,13 +224,7 @@ defmodule Stackfooter.Venue do
 
     orders
     |> Enum.filter(fn ord ->
-      ord.symbol == order.symbol
-    end)
-    |> Enum.filter(fn ord ->
-      ord.direction == direction
-    end)
-    |> Enum.filter(fn ord ->
-      ord.open
+      ord.open && ord.symbol == order.symbol && ord.direction == direction
     end)
     |> sort_direction(order.direction)
   end
@@ -333,17 +324,11 @@ defmodule Stackfooter.Venue do
     filtered_orders =
       orders
       |> Enum.filter(fn ord ->
-        ord.symbol == symbol
-      end)
-      |> Enum.filter(fn ord ->
-        ord.direction == direction
-      end)
-      |> Enum.filter(fn ord ->
-        ord.open
+        ord.open && ord.symbol == symbol && ord.direction == direction
       end)
       |> sort_direction(direction)
 
-    bid_ask_price = (filtered_orders |> List.first).price
+    bid_ask_price = get_bid_ask_price(filtered_orders)
     bid_ask_depth = order_quantity(filtered_orders)
     bid_ask_size =
       filtered_orders
@@ -353,6 +338,14 @@ defmodule Stackfooter.Venue do
       |> order_quantity
 
     %{price: bid_ask_price, size: bid_ask_size, depth: bid_ask_depth}
+  end
+
+  defp get_bid_ask_price([]) do
+    0
+  end
+
+  defp get_bid_ask_price([order|t]) do
+    order.price
   end
 
   defp order_quantity(orders) do

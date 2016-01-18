@@ -120,13 +120,13 @@ defmodule Stackfooter.Venue do
 
     cond do
       order_id > num_orders ->
-        {:reply, {:error, "Highest order id is #{num_orders}"}, {num_orders, last_executions, venue, tickers, orders}}
+        {:reply, {:error, %{"ok" => false, "error" => "Highest order id is #{num_orders}"}}, {num_orders, last_executions, venue, tickers, orders}}
       order_to_cancel.account == account ->
         new_orders = orders |> Enum.reject(fn order -> order.id == order_id end)
         cancelled_order = %{order_to_cancel | open: false}
-        {:reply, {:ok, "Order cancelled"}, {num_orders, last_executions, venue, tickers, new_orders ++ [cancelled_order]}}
+        {:reply, {:ok, cancelled_order}, {num_orders, last_executions, venue, tickers, new_orders ++ [cancelled_order]}}
       order_to_cancel.account != account ->
-        {:reply, {:error, "Only account " <> order_to_cancel.account <> " can cancel that order"}, {num_orders, last_executions, venue, tickers, orders}}
+        {:reply, {:error, %{"ok" => false, "error" => "Not authorized to delete that order.  You have to own account  #{order_to_cancel.account}."}}, {num_orders, last_executions, venue, tickers, orders}}
     end
   end
 

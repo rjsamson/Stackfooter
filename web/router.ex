@@ -30,6 +30,8 @@ defmodule Stackfooter.Router do
     get "/venues/:venue/stocks/:stock/orders/:id", VenueController, :order_status
     get "/venues/:venue/accounts/:account/orders", VenueController, :all_orders
     get "/venues/:venue/accounts/:account/stocks/:stock/orders", VenueController, :all_orders_stock
+    post "/venues/:venue/stocks/:stock/orders/:id/cancel", VenueController, :cancel_order
+    delete "/venues/:venue/stocks/:stock/orders/:id", VenueController, :cancel_order
   end
 
   # Other scopes may use custom stacks.

@@ -28,10 +28,32 @@ defmodule Stackfooter.VenueController do
   end
 
   def order_status(conn, %{"venue" => venue, "stock" => stock, "id" => order_id}) do
-    order_id = String.to_integer(order_id)
-    case Venue.order_status(conn.assigns[:venue], order_id, conn.assigns[:account]) do
-      {:ok, stock_quote} -> conn |> json(stock_quote)
-      {:error, msg} -> conn |> json(msg)
+    case Integer.parse(order_id) do
+      {val, _} ->
+        order_id = val
+        case Venue.order_status(conn.assigns[:venue], order_id, conn.assigns[:account]) do
+          {:ok, order} ->
+            order = Map.delete(order, :__struct__) |> Map.put(:ok, true)
+            conn |> json(order)
+          {:error, msg} -> conn |> json(msg)
+        end
+      :error ->
+        conn |> json(%{"ok" => false, "error" => "Invalid order id. Please supply an integer"})
+    end
+  end
+
+  def cancel_order(conn, %{"venue" => venue, "stock" => stock, "id" => order_id}) do
+    case Integer.parse(order_id) do
+      {val, _} ->
+        order_id = val
+        case Venue.cancel_order(conn.assigns[:venue], order_id, conn.assigns[:account]) do
+          {:ok, cancelled_order} ->
+            cancelled_order = Map.delete(cancelled_order, :__struct__) |> Map.put(:ok, true)
+            conn |> json(cancelled_order)
+          {:error, msg} -> conn |> json(msg)
+        end
+      :error ->
+        conn |> json(%{"ok" => false, "error" => "Invalid order id. Please supply an integer"})
     end
   end
 

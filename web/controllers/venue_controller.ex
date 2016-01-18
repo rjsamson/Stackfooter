@@ -7,28 +7,28 @@ defmodule Stackfooter.VenueController do
   alias Stackfooter.Venue
   alias Stackfooter.VenueRegistry
 
-  def heartbeat(conn, %{"venue" => venue}) do
+  def heartbeat(conn, %{"venue" => _venue}) do
     {:ok, %{venue: hb_venue}} = Venue.heartbeat(conn.assigns[:venue])
     conn |> json(%{ok: true, venue: String.upcase(hb_venue)})
   end
 
-  def stocks(conn, %{"venue" => venue}) do
+  def stocks(conn, %{"venue" => _venue}) do
     {:ok, tickers} = Venue.tickers(conn.assigns[:venue])
     conn |> json(%{ok: true, symbols: tickers})
     # render conn, "stocks.json", %{tickers: tickers}
   end
 
-  def orderbook(conn, %{"venue" => venue, "stock" => stock}) do
+  def orderbook(conn, %{"venue" => _venue, "stock" => stock}) do
     {:ok, orderbook} = Venue.order_book(conn.assigns[:venue], stock)
     conn |> json(orderbook)
   end
 
-  def get_quote(conn, %{"venue" => venue, "stock" => stock}) do
+  def get_quote(conn, %{"venue" => _venue, "stock" => stock}) do
     {:ok, stock_quote} = Venue.get_quote(conn.assigns[:venue], stock)
     conn |> json(stock_quote)
   end
 
-  def order_status(conn, %{"venue" => venue, "stock" => stock, "id" => order_id}) do
+  def order_status(conn, %{"venue" => _venue, "stock" => _stock, "id" => order_id}) do
     case Integer.parse(order_id) do
       {val, _} ->
         order_id = val
@@ -43,7 +43,7 @@ defmodule Stackfooter.VenueController do
     end
   end
 
-  def cancel_order(conn, %{"venue" => venue, "stock" => stock, "id" => order_id}) do
+  def cancel_order(conn, %{"venue" => _venue, "stock" => _stock, "id" => order_id}) do
     case Integer.parse(order_id) do
       {val, _} ->
         order_id = val
@@ -80,6 +80,32 @@ defmodule Stackfooter.VenueController do
       conn |> json(%{"ok" => true, "venue" => venue, "orders" => orders})
     else
       conn |> put_status(401) |> json(%{"ok" => false, "error" => "Not authorized to access details about that account's orders."})
+    end
+  end
+
+  def place_order(conn, %{"path_venue" => path_venue, "path_stock" => path_stock} = params) do
+    path_venue = String.upcase(path_venue)
+    path_stock = String.upcase(path_stock)
+
+    account = Map.get(params, "account")
+    direction = Map.get(params, "direction")
+    order_type = Map.get(params, "orderType")
+    qty = Map.get(params, "qty")
+    price = Map.get(params, "price", 0)
+    stock = Map.get(params, "stock")
+    venue = Map.get(params, "venue")
+
+    cond do
+      account == nil || direction == nil || order_type == nil || !is_integer(qty) || !is_integer(price) || stock == nil || venue == nil ->
+        conn |> json(%{"ok" => false, "error" => "You failed to include some required parameters for the order, or formatted the price or quantity incorrectly."})
+      String.upcase(venue) != path_venue || String.upcase(stock) != path_stock ->
+        conn |> json(%{"ok" => false, "error" => "Venue or stock did not match venue or stock provided in the URL."})
+      true ->
+        order = %{account: account, direction: direction, orderType: order_type, price: price, qty: qty, symbol: stock}
+        {:ok, placed_order} = Venue.place_order(conn.assigns[:venue], order)
+        placed_order = Map.delete(placed_order, :__struct__) |> Map.put(:ok, true)
+
+        conn |> json(placed_order)
     end
   end
 

@@ -22,7 +22,7 @@ with Stackfooter is to do the following:
 
 ## TODO
 
-  * Performance improvements in the Venue GenServer
+  * ~~Performance improvements in the Venue GenServer~~
   * Websockets
   * Settlement Desk for position tracking
   * Web interface for setup and control

@@ -33,10 +33,16 @@ Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 9, price: 7400,
 Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 10, price: 7120, account: "rjsamson", orderType: "limit"})
 Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 21, price: 7970, account: "rjsamson", orderType: "limit"})
 
-Venue.order_book(venue, "NYC")
-Venue.get_quote(venue, "NYC")
 
 # Market buy/sell
 
 Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 16, price: 0, account: "rjsamson", orderType: "market"})
 Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "rjsamson", orderType: "market"})
+
+Venue.order_book(venue, "NYC")
+Venue.get_quote(venue, "NYC")
+Venue.cancel_order(venue, 1, "RJSAMSON")
+Venue.order_status(venue, 1, "RJSAMSON")
+Venue.get_quote(venue, "NYC")
+Venue.all_orders(venue, "RJSAMSON")
+Venue.all_orders_stock(venue, "RJSAMSON", "NYC")

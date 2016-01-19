@@ -2,6 +2,7 @@ defmodule Stackfooter.VenueController do
   use Stackfooter.Web, :controller
 
   plug Stackfooter.Plugs.Api.Authenticate
+  plug :parse_body_params when action in [:place_order]
   plug :check_venue
 
   alias Stackfooter.Venue
@@ -83,17 +84,17 @@ defmodule Stackfooter.VenueController do
     end
   end
 
-  def place_order(conn, %{"path_venue" => path_venue, "path_stock" => path_stock} = params) do
+  def place_order(conn, %{"venue" => path_venue, "stock" => path_stock} = params) do
     path_venue = String.upcase(path_venue)
     path_stock = String.upcase(path_stock)
 
-    account = Map.get(params, "account")
-    direction = Map.get(params, "direction")
-    order_type = Map.get(params, "orderType")
-    qty = Map.get(params, "qty")
-    price = Map.get(params, "price", 0)
-    stock = Map.get(params, "stock")
-    venue = Map.get(params, "venue")
+    account = Map.get(conn.body_params, "account")
+    direction = Map.get(conn.body_params, "direction")
+    order_type = Map.get(conn.body_params, "orderType")
+    qty = Map.get(conn.body_params, "qty")
+    price = Map.get(conn.body_params, "price", 0)
+    stock = Map.get(conn.body_params, "stock")
+    venue = Map.get(conn.body_params, "venue")
 
     cond do
       account == nil || direction == nil || order_type == nil || !is_integer(qty) || !is_integer(price) || stock == nil || venue == nil ->
@@ -119,6 +120,17 @@ defmodule Stackfooter.VenueController do
         put_status(conn, 404)
         |> json(%{ok: false, error: "No venue exists with the symbol #{String.upcase(venue_str)}."})
         |> halt()
+    end
+  end
+
+  defp parse_body_params(conn, _params) do
+    keys = Map.keys(conn.body_params)
+
+    if Map.get(conn.body_params, "stock") != nil || keys == [] do
+      conn
+    else
+      json = keys |> List.first |> Poison.Parser.parse!()
+      %{conn | body_params: json}
     end
   end
 end

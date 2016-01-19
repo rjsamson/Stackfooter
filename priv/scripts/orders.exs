@@ -48,10 +48,10 @@ Venue.all_orders_stock(venue, "RJSAMSON", "NYC")
 
 # Stack the order book WAY up
 
-Enum.each(4300..4450, fn x ->
+Enum.each(4200..4450, fn x ->
   Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 7, price: x, account: "rjsamson", orderType: "limit"})
 end)
 
-Enum.each(4560..4710, fn x ->
+Enum.each(4460..4710, fn x ->
   Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 7, price: x, account: "rjsamson", orderType: "limit"})
 end)

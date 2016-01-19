@@ -171,16 +171,10 @@ defmodule Stackfooter.Venue do
   end
 
   def handle_call({:order_book, symbol}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders}) do
-    orders =
+    bids =
       open_orders
       |> Enum.filter(fn order ->
-        order.symbol == symbol
-      end)
-
-    bids =
-      orders
-      |> Enum.filter(fn order ->
-        order.direction == "buy"
+        order.direction == "buy" && order.symbol == symbol
       end)
       |> Enum.sort(&(&1.price > &2.price))
       |> Enum.map(fn order ->
@@ -189,9 +183,9 @@ defmodule Stackfooter.Venue do
       |> consolidate_entries
 
     asks =
-      orders
+      open_orders
       |> Enum.filter(fn order ->
-        order.direction == "sell"
+        order.direction == "sell" && order.symbol == symbol
       end)
       |> Enum.sort(&(&1.price < &2.price))
       |> Enum.map(fn order ->
@@ -205,22 +199,11 @@ defmodule Stackfooter.Venue do
   end
 
   defp consolidate_entries(entries) do
-    modified_entries =
-      Enum.reduce(entries, [], fn(entry, acc) ->
-        like_entries =
-          Enum.filter(entries, fn other_entry ->
-             other_entry.price == entry.price
-          end)
-
-        total_qty =
-          Enum.reduce(like_entries, 0, fn(like_entry, qty) ->
-            qty + like_entry.qty
-          end)
-
-        acc ++ [%OrderbookEntry{price: entry.price, qty: total_qty, isBuy: entry.isBuy}]
-      end)
-
-    modified_entries |> Enum.uniq
+    Enum.reduce(entries, %{}, fn(entry, acc) ->
+      qty = Map.get(acc, entry.price, 0)
+      Map.put(acc, entry.price, %OrderbookEntry{price: entry.price, qty: qty, isBuy: entry.isBuy})
+    end)
+    |> Map.values
   end
 
   defp process_order(%Order{orderType: orderType} = order, orders, last_fills) do

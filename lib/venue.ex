@@ -5,7 +5,7 @@ defmodule Stackfooter.Venue do
   use GenServer
 
   defmodule OrderbookEntry do
-    defstruct price: 0, qty: 0, is_buy: true
+    defstruct price: 0, qty: 0, isBuy: true
   end
 
   defmodule Ticker do
@@ -33,10 +33,11 @@ defmodule Stackfooter.Venue do
   def heartbeat(pid), do: GenServer.call(pid, :heartbeat)
 
   def start_link(venue_name, tickers) do
-    last_executions = %{}
-    Enum.each(tickers, fn ticker ->
-      Map.put(last_executions, ticker.symbol, %Fill{price: ((:random.uniform(50) + 20) * 100), qty: (:random.uniform(50) + 20), ts: get_timestamp})
-    end)
+    last_executions =
+      Enum.reduce(tickers, %{}, fn(ticker, acc) ->
+        fill = %Fill{price: ((:random.uniform(50) + 20) * 100), qty: (:random.uniform(50) + 20), ts: get_timestamp}
+        Map.put(acc, ticker.symbol, fill)
+      end)
 
     GenServer.start_link(__MODULE__, {0, last_executions, venue_name, tickers, [], []}, name: String.to_atom(venue_name))
   end
@@ -173,7 +174,7 @@ defmodule Stackfooter.Venue do
     orders =
       open_orders
       |> Enum.filter(fn order ->
-        order.open && order.symbol == symbol
+        order.symbol == symbol
       end)
 
     bids =
@@ -183,12 +184,9 @@ defmodule Stackfooter.Venue do
       end)
       |> Enum.sort(&(&1.price > &2.price))
       |> Enum.map(fn order ->
-        %OrderbookEntry{price: order.price, qty: Order.quantity_remaining(order), is_buy: true}
+        %OrderbookEntry{price: order.price, qty: Order.quantity_remaining(order), isBuy: true}
       end)
       |> consolidate_entries
-      |> Enum.map(fn order ->
-        %{"price" => order.price, "qty" => order.qty, "isBuy" => order.is_buy}
-      end)
 
     asks =
       orders
@@ -197,12 +195,9 @@ defmodule Stackfooter.Venue do
       end)
       |> Enum.sort(&(&1.price < &2.price))
       |> Enum.map(fn order ->
-        %OrderbookEntry{price: order.price, qty: Order.quantity_remaining(order), is_buy: false}
+        %OrderbookEntry{price: order.price, qty: Order.quantity_remaining(order), isBuy: false}
       end)
       |> consolidate_entries
-      |> Enum.map(fn order ->
-        %{"price" => order.price, "qty" => order.qty, "isBuy" => order.is_buy}
-      end)
 
     order_book = %{"ok" => true, "venue" => venue, "symbol" => symbol, "bids" => bids, "asks" => asks, "ts" => get_timestamp}
 
@@ -222,7 +217,7 @@ defmodule Stackfooter.Venue do
             qty + like_entry.qty
           end)
 
-        acc ++ [%OrderbookEntry{price: entry.price, qty: total_qty, is_buy: entry.is_buy}]
+        acc ++ [%OrderbookEntry{price: entry.price, qty: total_qty, isBuy: entry.isBuy}]
       end)
 
     modified_entries |> Enum.uniq

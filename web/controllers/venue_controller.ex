@@ -104,7 +104,8 @@ defmodule Stackfooter.VenueController do
       true ->
         order = %{account: account, direction: direction, orderType: order_type, price: price, qty: qty, symbol: stock}
         {:ok, placed_order} = Venue.place_order(conn.assigns[:venue], order)
-        placed_order = Map.delete(placed_order, :__struct__) |> Map.put(:ok, true)
+        qty = Order.quantity_remaining(placed_order)
+        placed_order = Map.delete(placed_order, :__struct__) |> Map.put(:ok, true, qty: qty)
 
         conn |> json(placed_order)
     end

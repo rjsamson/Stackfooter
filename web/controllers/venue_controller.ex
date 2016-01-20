@@ -84,7 +84,7 @@ defmodule Stackfooter.VenueController do
     end
   end
 
-  def place_order(conn, %{"venue" => path_venue, "stock" => path_stock} = params) do
+  def place_order(conn, %{"venue" => path_venue, "stock" => path_stock} = _params) do
     path_venue = String.upcase(path_venue)
     path_stock = String.upcase(path_stock)
 

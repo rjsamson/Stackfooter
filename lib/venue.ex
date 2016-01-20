@@ -164,7 +164,7 @@ defmodule Stackfooter.Venue do
 
     order = %Order{id: order_id, direction: direction, venue: venue,
                    account: account, symbol: symbol, originalQty: qty,
-                   price: price, orderType: orderType, ts: get_timestamp}
+                   price: price, orderType: orderType, ts: get_timestamp, qty: qty}
 
     {new_order, new_open_orders, new_closed_orders, new_last_executions} = process_order(order, open_orders, last_executions)
 

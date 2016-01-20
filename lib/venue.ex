@@ -200,7 +200,8 @@ defmodule Stackfooter.Venue do
 
   defp consolidate_entries(entries) do
     Enum.reduce(entries, %{}, fn(entry, acc) ->
-      qty = Map.get(acc, entry.price, 0)
+      total_entry = Map.get(acc, entry.price, %OrderbookEntry{qty: 0})
+      qty = entry.qty + total_entry.qty
       Map.put(acc, entry.price, %OrderbookEntry{price: entry.price, qty: qty, isBuy: entry.isBuy})
     end)
     |> Map.values

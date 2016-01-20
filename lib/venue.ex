@@ -300,7 +300,7 @@ defmodule Stackfooter.Venue do
     qty_available_from_match = Order.quantity_remaining(h)
     qty_remaining_to_trade = Order.quantity_remaining(order)
     qty_to_execute = calculate_fill_quantity(qty_remaining_to_trade, qty_available_from_match)
-    price = trade_price(h, order)
+    price = h.price
 
     # settle at the fills
     fill = %Fill{price: price, qty: qty_to_execute, ts: get_timestamp}
@@ -316,22 +316,6 @@ defmodule Stackfooter.Venue do
       execute_order_fill(t, updated_order, updated_orders, [updated_matching_order] ++ closed_orders, Order.quantity_remaining(updated_order), last_fills)
     end
 
-  end
-
-  defp trade_price(order1, order2) do
-    if order1.direction == "sell" do
-      if order1.price != 0 do
-        order1.price
-      else
-        order2.price
-      end
-    else
-      if order2.price != 0 do
-        order2.price
-      else
-        order1.price
-      end
-    end
   end
 
   defp matching_quantity_available(orders, order) do

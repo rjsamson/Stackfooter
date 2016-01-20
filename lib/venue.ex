@@ -242,7 +242,7 @@ defmodule Stackfooter.Venue do
     |> Enum.filter(fn ord ->
       ord.symbol == order.symbol && ord.direction == direction
     end)
-    |> sort_direction(order.direction)
+    |> sort_direction(direction)
   end
 
   defp sort_direction(orders, direction) do
@@ -262,10 +262,12 @@ defmodule Stackfooter.Venue do
         get_open_matching_orders(orders, order) |> Enum.filter(fn ord ->
           ord.price >= order.price
         end)
+        |> sort_direction("buy")
       "sell" ->
         get_open_matching_orders(orders, order) |> Enum.filter(fn ord ->
           ord.price <= order.price
         end)
+        |> sort_direction("sell")
     end
   end
 

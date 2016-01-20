@@ -219,7 +219,7 @@ defmodule Stackfooter.Venue do
 
     if quantity_available < order.originalQty do
       closed_order = Order.close(order)
-      {closed_order, orders ++ [closed_order], last_fills}
+      {closed_order, orders, [closed_order], last_fills}
     else
       orders |> get_limit_matches(order) |> execute_order(orders, order, last_fills, true)
     end

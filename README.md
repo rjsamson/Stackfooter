@@ -23,6 +23,13 @@ with Stackfooter is to do the following:
 ## TODO
 
   * ~~Performance improvements in the Venue GenServer~~
+  * ~~Full API compatibility~~
   * Websockets
   * Settlement Desk for position tracking
   * Web interface for setup and control
+
+## Thanks
+
+Thanks to danielvf and amtiskaw for some pointers, and again to amtiskaw for the excellent
+test script to work out some last minute inconsistencies. Also, big thanks to patio11 for
+making Stockfighter!

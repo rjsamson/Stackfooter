@@ -177,36 +177,36 @@ defmodule Stackfooter.Venue do
       |> Enum.filter(fn order ->
         order.direction == "buy" && order.symbol == symbol
       end)
+      |> Enum.sort(&(&1.ts > &2.ts))
       |> Enum.sort(&(&1.price > &2.price))
       |> Enum.map(fn order ->
-        %OrderbookEntry{price: order.price, qty: Order.quantity_remaining(order), isBuy: true}
+        %OrderbookEntry{price: order.price, qty: order.qty, isBuy: true}
       end)
-      |> consolidate_entries
 
     asks =
       open_orders
       |> Enum.filter(fn order ->
         order.direction == "sell" && order.symbol == symbol
       end)
+      |> Enum.sort(&(&1.ts > &2.ts))
       |> Enum.sort(&(&1.price < &2.price))
       |> Enum.map(fn order ->
-        %OrderbookEntry{price: order.price, qty: Order.quantity_remaining(order), isBuy: false}
+        %OrderbookEntry{price: order.price, qty: order.qty, isBuy: false}
       end)
-      |> consolidate_entries
 
     order_book = %{"ok" => true, "venue" => venue, "symbol" => symbol, "bids" => bids, "asks" => asks, "ts" => get_timestamp}
 
     {:reply, {:ok, order_book}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders}}
   end
 
-  defp consolidate_entries(entries) do
-    Enum.reduce(entries, %{}, fn(entry, acc) ->
-      total_entry = Map.get(acc, entry.price, %OrderbookEntry{qty: 0})
-      qty = entry.qty + total_entry.qty
-      Map.put(acc, entry.price, %OrderbookEntry{price: entry.price, qty: qty, isBuy: entry.isBuy})
-    end)
-    |> Map.values
-  end
+  # defp consolidate_entries(entries) do
+  #   Enum.reduce(entries, %{}, fn(entry, acc) ->
+  #     total_entry = Map.get(acc, entry.price, %OrderbookEntry{qty: 0})
+  #     qty = entry.qty + total_entry.qty
+  #     Map.put(acc, entry.price, %OrderbookEntry{price: entry.price, qty: qty, isBuy: entry.isBuy})
+  #   end)
+  #   |> Map.values
+  # end
 
   defp process_order(%Order{orderType: orderType} = order, orders, last_fills) do
     process_order(order, orderType, orders, last_fills)
@@ -243,6 +243,7 @@ defmodule Stackfooter.Venue do
     |> Enum.filter(fn ord ->
       ord.symbol == order.symbol && ord.direction == direction
     end)
+    |> Enum.sort(&(&1.ts > &2.ts))
     |> sort_direction(direction)
   end
 
@@ -263,11 +264,13 @@ defmodule Stackfooter.Venue do
         get_open_matching_orders(orders, order) |> Enum.filter(fn ord ->
           ord.price >= order.price
         end)
+        |> Enum.sort(&(&1.ts > &2.ts))
         |> sort_direction("buy")
       "sell" ->
         get_open_matching_orders(orders, order) |> Enum.filter(fn ord ->
           ord.price <= order.price
         end)
+        |> Enum.sort(&(&1.ts > &2.ts))
         |> sort_direction("sell")
     end
   end

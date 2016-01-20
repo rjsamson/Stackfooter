@@ -176,9 +176,8 @@ defmodule Stackfooter.Venue do
     venue = String.upcase(venue)
     direction = String.downcase(direction)
     orderType = String.downcase(orderType)
-    order_id = num_orders + 1
 
-    order = %Order{id: order_id, direction: direction, venue: venue,
+    order = %Order{id: num_orders, direction: direction, venue: venue,
                    account: account, symbol: symbol, originalQty: qty,
                    price: price, orderType: orderType, ts: get_timestamp, qty: qty}
 

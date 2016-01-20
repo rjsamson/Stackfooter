@@ -52,7 +52,8 @@ defmodule Stackfooter.Venue do
 
   def handle_call({:add_ticker, {symbol, name}}, _from, {num_orders, last_execution, venue, tickers, closed_orders, open_orders}) do
     ticker = %Ticker{symbol: symbol, name: name}
-    {:reply, {:ok, tickers ++ [ticker]}, {num_orders, last_execution, venue, tickers ++ [ticker], closed_orders, open_orders}}
+    new_tickers = [ticker] ++ tickers
+    {:reply, {:ok, new_tickers}, {num_orders, last_execution, venue, new_tickers, closed_orders, open_orders}}
   end
 
   def handle_call({:get_quote, symbol}, _from, {_num_orders, last_executions, venue, _tickers, _closed_orders, open_orders} = state) do
@@ -113,7 +114,7 @@ defmodule Stackfooter.Venue do
       open_orders
       |> Enum.filter(fn order -> order.account == account end)
 
-    {:reply, {:ok, closed ++ open}, state}
+    {:reply, {:ok, open ++ closed}, state}
   end
 
   def handle_call({:all_orders_stock, account, stock}, _from, {_, _, _, _, closed_orders, open_orders} = state) do
@@ -125,7 +126,7 @@ defmodule Stackfooter.Venue do
       open_orders
       |> Enum.filter(fn order -> order.account == account && order.symbol == stock end)
 
-    {:reply, {:ok, closed ++ open}, state}
+    {:reply, {:ok, open ++ closed}, state}
   end
 
   def handle_call({:cancel_order, order_id, account}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders}) do
@@ -147,7 +148,7 @@ defmodule Stackfooter.Venue do
       order_to_cancel.account == account ->
         new_open_orders = open_orders |> Enum.reject(fn order -> order.id == order_id end)
         cancelled_order = %{order_to_cancel | open: false}
-        {:reply, {:ok, cancelled_order}, {num_orders, last_executions, venue, tickers, closed_orders ++ [cancelled_order], new_open_orders}}
+        {:reply, {:ok, cancelled_order}, {num_orders, last_executions, venue, tickers, [cancelled_order] ++ closed_orders, new_open_orders}}
       order_to_cancel.account != account ->
         {:reply, {:error, %{"ok" => false, "error" => "Not authorized to delete that order.  You have to own account  #{order_to_cancel.account}."}}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders}}
     end
@@ -167,7 +168,7 @@ defmodule Stackfooter.Venue do
 
     {new_order, new_open_orders, new_closed_orders, new_last_executions} = process_order(order, open_orders, last_executions)
 
-    {:reply, {:ok, new_order}, {num_orders + 1, new_last_executions, venue, tickers, closed_orders ++ new_closed_orders, new_open_orders}}
+    {:reply, {:ok, new_order}, {num_orders + 1, new_last_executions, venue, tickers, new_closed_orders ++ closed_orders, new_open_orders}}
   end
 
   def handle_call({:order_book, symbol}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders}) do
@@ -273,12 +274,12 @@ defmodule Stackfooter.Venue do
     {new_order, new_orders, closed_orders, new_last_fill} = matching_orders |> execute_order_fill(order, last_fill)
     if close_order do
       closed_order = Order.close(new_order)
-      {closed_order, remaining_orders ++ new_orders, closed_orders ++ [closed_order], new_last_fill}
+      {closed_order, remaining_orders ++ new_orders, [closed_order] ++ closed_orders, new_last_fill}
     else
       if new_order.open do
-        {new_order, remaining_orders ++ new_orders ++ [new_order], closed_orders, new_last_fill}
+        {new_order, [new_order] ++ new_orders ++ remaining_orders, closed_orders, new_last_fill}
       else
-        {new_order, remaining_orders ++ new_orders, closed_orders ++ [new_order], new_last_fill}
+        {new_order, new_orders ++ remaining_orders, [new_order] ++ closed_orders, new_last_fill}
       end
     end
   end
@@ -310,9 +311,9 @@ defmodule Stackfooter.Venue do
     last_fills = Map.put(last_fills, order.symbol, fill)
 
     if updated_matching_order.open do
-      execute_order_fill(t, updated_order, updated_orders ++ [updated_matching_order], closed_orders, Order.quantity_remaining(updated_order), last_fills)
+      execute_order_fill(t, updated_order, [updated_matching_order] ++ updated_orders, closed_orders, Order.quantity_remaining(updated_order), last_fills)
     else
-      execute_order_fill(t, updated_order, updated_orders, closed_orders ++ [updated_matching_order], Order.quantity_remaining(updated_order), last_fills)
+      execute_order_fill(t, updated_order, updated_orders, [updated_matching_order] ++ closed_orders, Order.quantity_remaining(updated_order), last_fills)
     end
 
   end

@@ -152,7 +152,7 @@ defmodule Stackfooter.Venue do
       |> List.first
 
     cond do
-      order_id > num_orders ->
+      order_id >= num_orders || order_id < 0 ->
         {:reply, {:error, %{"ok" => false, "error" => "Highest order id is #{num_orders}"}}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders}}
       order_to_cancel == nil ->
         cancelled_order =

@@ -67,11 +67,27 @@ defmodule Stackfooter.Venue do
     ask_info = bid_ask_info(open_orders, symbol, "sell")
 
     stock_quote = %{"ok" => true, "symbol" => symbol, "venue" => venue,
-              "bid" => bid_info[:price], "ask" => ask_info[:price], "bidSize" => bid_info[:size],
+              "bidSize" => bid_info[:size],
               "askSize" => ask_info[:size], "bidDepth" => bid_info[:depth],
               "askDepth" => ask_info[:depth], "last" => last_execution.price,
               "lastSize" => last_execution.qty, "lastTrade" => last_execution.ts,
               "quoteTime" => get_timestamp}
+
+    stock_quote =
+      case bid_info[:price] do
+        0 ->
+          stock_quote
+        _ ->
+          Map.put(stock_quote, "bid", bid_info[:price])
+      end
+
+    stock_quote =
+      case ask_info[:price] do
+        0 ->
+          stock_quote
+        _ ->
+          Map.put(stock_quote, "ask", ask_info[:price])
+      end
 
     {:reply, {:ok, stock_quote}, state}
   end

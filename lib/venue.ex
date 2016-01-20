@@ -240,7 +240,7 @@ defmodule Stackfooter.Venue do
 
     orders
     |> Enum.filter(fn ord ->
-      ord.open && ord.symbol == order.symbol && ord.direction == direction
+      ord.symbol == order.symbol && ord.direction == direction
     end)
     |> sort_direction(order.direction)
   end
@@ -274,7 +274,7 @@ defmodule Stackfooter.Venue do
     {new_order, new_orders, closed_orders, new_last_fill} = matching_orders |> execute_order_fill(order, last_fill)
     if close_order do
       closed_order = Order.close(new_order)
-      {closed_order, remaining_orders ++ new_orders, [closed_order] ++ closed_orders, new_last_fill}
+      {closed_order, new_orders ++ remaining_orders, [closed_order] ++ closed_orders, new_last_fill}
     else
       if new_order.open do
         {new_order, [new_order] ++ new_orders ++ remaining_orders, closed_orders, new_last_fill}

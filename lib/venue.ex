@@ -213,7 +213,7 @@ defmodule Stackfooter.Venue do
   end
 
   defp process_order(order, "market", orders, last_fills) do
-    order = {order | price: 0}
+    order = %{order | price: 0}
     orders |> get_open_matching_orders(order) |> execute_order(orders, order, last_fills, true)
   end
 

@@ -27,7 +27,7 @@ Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 30, price: 600
 
 # Limit buy
 
-Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 40, price: 6000, account: "account1", orderType: "limit"})
+Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 40, price: 6000, account: "account2", orderType: "limit"})
 
 Stackfooter.SettlementDesk.lookup(Stackfooter.SettlementDesk, "rjsamson")
 

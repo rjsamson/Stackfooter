@@ -27,7 +27,10 @@ Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 30, price: 600
 
 # Limit buy
 
-Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 40, price: 6000, account: "rjsamson", orderType: "limit"})
+Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 40, price: 6000, account: "account1", orderType: "limit"})
+
+Stackfooter.SettlementDesk.lookup(Stackfooter.SettlementDesk, "rjsamson")
+
 Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 30, price: 6000, account: "rjsamson", orderType: "limit"})
 Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 10, price: 7120, account: "rjsamson", orderType: "limit"})
 Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 21, price: 7970, account: "rjsamson", orderType: "limit"})

@@ -36,6 +36,10 @@ defmodule Stackfooter.SettlementDesk do
   end
 
   def handle_cast({:settle_transaction, buy_account_name, sell_account_name, stock, fill}, accounts) do
+    price = fill.price
+    quantity = fill.qty
+    amount = price * quantity
+
     buy_account =
       case lookup(accounts, buy_account_name) do
         {:ok, account} ->
@@ -43,6 +47,17 @@ defmodule Stackfooter.SettlementDesk do
         _ ->
           %Account{name: buy_account_name}
       end
+
+    buy_position = position_for_stock(buy_account.positions, stock)
+    remaining_buy_positions = buy_account.positions -- [buy_position]
+    new_buy_position_qty = buy_position.qty + quantity
+    buy_position = %{buy_position | qty: new_buy_position_qty}
+    new_buy_account_value = buy_account.value - amount
+
+    buy_account = %{buy_account | value: new_buy_account_value,
+                                  positions: [buy_position] ++ remaining_buy_positions}
+
+    :ets.insert(accounts, {buy_account_name, buy_account})
 
     sell_account =
       case lookup(accounts, sell_account_name) do
@@ -52,32 +67,15 @@ defmodule Stackfooter.SettlementDesk do
           %Account{name: sell_account_name}
       end
 
-    price = fill.price
-    quantity = fill.qty
-    amount = price * quantity
-
-    buy_position = position_for_stock(buy_account.positions, stock)
     sell_position = position_for_stock(sell_account.positions, stock)
-
-    remaining_buy_positions = buy_account.positions -- [buy_position]
     remaining_sell_positions = sell_account.positions -- [sell_position]
-
-    new_buy_position_qty = buy_position.qty + quantity
-    buy_position = %{buy_position | qty: new_buy_position_qty}
-
     new_sell_position_qty = sell_position.qty - quantity
     sell_position = %{sell_position | qty: new_sell_position_qty}
-
-    new_buy_account_value = buy_account.value - amount
     new_sell_account_value = sell_account.value + amount
-
-    buy_account = %{buy_account | value: new_buy_account_value,
-                                  positions: [buy_position] ++ remaining_buy_positions}
 
     sell_account = %{sell_account | value: new_sell_account_value,
                                     positions: [sell_position] ++ remaining_sell_positions}
 
-    :ets.insert(accounts, {buy_account_name, buy_account})
     :ets.insert(accounts, {sell_account_name, sell_account})
 
     {:noreply, accounts}

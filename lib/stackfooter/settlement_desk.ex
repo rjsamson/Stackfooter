@@ -24,13 +24,12 @@ defmodule Stackfooter.SettlementDesk do
     GenServer.cast(table, {:settle_transaction, buy_account_name, sell_account_name, stock, fill})
   end
 
-  def lookup(table, name) when is_atom(table) do
+  def lookup(accounts, name) when is_atom(accounts) do
     name = String.upcase(name)
-    case :ets.lookup(table, name) do
+    case :ets.lookup(accounts, name) do
       [{^name, account}] -> {:ok, account}
       [] ->
         account = %Account{name: name}
-        :ets.insert(table, {name, account})
         {:ok, account}
     end
   end

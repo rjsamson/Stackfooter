@@ -3,7 +3,9 @@ defmodule Stackfooter.VenueController do
 
   plug Stackfooter.Plugs.Api.Authenticate
   plug :parse_body_params when action in [:place_order]
-  plug :check_venue
+  plug :check_venue when action in [:heartbeat, :stocks, :orderbook, :get_quote,
+                                    :order_status, :cancel_order, :all_orders,
+                                    :all_orders_stock, :place_order]
 
   alias Stackfooter.Venue
   alias Stackfooter.VenueRegistry
@@ -11,6 +13,11 @@ defmodule Stackfooter.VenueController do
   def heartbeat(conn, %{"venue" => _venue}) do
     {:ok, %{venue: hb_venue}} = Venue.heartbeat(conn.assigns[:venue])
     conn |> json(%{ok: true, venue: String.upcase(hb_venue)})
+  end
+
+  def venues(conn, _params) do
+    venues = VenueRegistry.all_venue_names(VenueRegistry)
+    conn |> json(venues)
   end
 
   def stocks(conn, %{"venue" => _venue}) do

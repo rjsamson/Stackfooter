@@ -23,6 +23,10 @@ defmodule Stackfooter.VenueRegistry do
     :ets.select(pid, [{{:_, :"$1"}, [], [:"$1"]}])
   end
 
+  def all_venue_names(pid) do
+    :ets.select(pid, [{{:"$1", :_}, [], [:"$1"]}])
+  end
+
   def init(table) do
     venue_names = :ets.new(table, [:named_table, read_concurrency: true])
     {:ok, venue_names}

@@ -326,6 +326,10 @@ defmodule Stackfooter.Venue do
     # settle at the fills
     fill = %Fill{price: price, qty: qty_to_execute, ts: get_timestamp}
 
+    {buy_account, sell_account} = get_buy_sell_accounts(order, h)
+    transaction = %{buy_account: buy_account, sell_account: sell_account, stock: order.symbol, fill: fill}
+    :ok = Stackfooter.SettlementDesk.settle_transaction(Stackfooter.SettlementDesk, transaction)
+
     updated_order = Order.add_fill_to_order(order, fill)
     updated_matching_order = Order.add_fill_to_order(h, fill)
 
@@ -337,6 +341,15 @@ defmodule Stackfooter.Venue do
       execute_order_fill(t, updated_order, updated_orders, [updated_matching_order] ++ closed_orders, Order.quantity_remaining(updated_order), last_fills)
     end
 
+  end
+
+  defp get_buy_sell_accounts(order1, order2) do
+    case order1.direction do
+      "buy" ->
+        {order1.account, order2.account}
+      "sell" ->
+        {order2.account, order1.account}
+    end
   end
 
   defp matching_quantity_available(orders, order) do

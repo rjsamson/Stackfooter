@@ -4,17 +4,17 @@ defmodule Stackfooter.SettlementDesk do
       defstruct stock: "", qty: 0, price: 0
     end
 
-    defstruct name: "", value: 0, positions: [], nav: 0
+    defstruct name: "", cash: 0, positions: [], nav: 0
 
     def calculate_nav(account, stock_quotes) do
-      position_value =
+      position_cash =
         Enum.reduce(account.positions, 0, fn(pos, acc) ->
           price = Map.get(stock_quotes, pos.stock , 0)
           qty = pos.qty
           acc + (price * qty)
         end)
 
-      position_value + account.value
+      position_cash + account.cash
     end
 
     def update_positions(account, stock_quotes) do
@@ -70,9 +70,9 @@ defmodule Stackfooter.SettlementDesk do
     remaining_buy_positions = buy_account.positions -- [buy_position]
     new_buy_position_qty = buy_position.qty + quantity
     buy_position = %{buy_position | qty: new_buy_position_qty}
-    new_buy_account_value = buy_account.value - amount
+    new_buy_account_cash = buy_account.cash - amount
 
-    buy_account = %{buy_account | value: new_buy_account_value,
+    buy_account = %{buy_account | cash: new_buy_account_cash,
                                   positions: [buy_position] ++ remaining_buy_positions}
 
     :ets.insert(accounts, {buy_account_name, buy_account})
@@ -89,9 +89,9 @@ defmodule Stackfooter.SettlementDesk do
     remaining_sell_positions = sell_account.positions -- [sell_position]
     new_sell_position_qty = sell_position.qty - quantity
     sell_position = %{sell_position | qty: new_sell_position_qty}
-    new_sell_account_value = sell_account.value + amount
+    new_sell_account_cash = sell_account.cash + amount
 
-    sell_account = %{sell_account | value: new_sell_account_value,
+    sell_account = %{sell_account | cash: new_sell_account_cash,
                                     positions: [sell_position] ++ remaining_sell_positions}
 
     :ets.insert(accounts, {sell_account_name, sell_account})

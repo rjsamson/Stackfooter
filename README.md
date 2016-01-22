@@ -25,8 +25,9 @@ with Stackfooter is to do the following:
 
   * ~~Performance improvements in the Venue GenServer~~
   * ~~Full API compatibility~~
+  * ~~Settlement Desk for position tracking~~
+  * ~~Scores API~~
   * Websockets
-  * Settlement Desk for position tracking
   * Web interface for setup and control
 
 ## Thanks

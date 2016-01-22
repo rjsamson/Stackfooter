@@ -1,12 +1,27 @@
 defmodule Stackfooter.SettlementDesk do
-  alias Stackfooter.Order.Fill
-
   defmodule Account do
     defmodule Position do
-      defstruct stock: "", qty: 0
+      defstruct stock: "", qty: 0, price: 0
     end
 
-    defstruct name: "", value: 0, positions: []
+    defstruct name: "", value: 0, positions: [], nav: 0
+
+    def calculate_nav(account, stock_quotes) do
+      position_value =
+        Enum.reduce(account.positions, 0, fn(pos, acc) ->
+          price = Map.get(stock_quotes, pos.stock , 0)
+          qty = pos.qty
+          acc + (price * qty)
+        end)
+
+      position_value + account.value
+    end
+
+    def update_positions(account, stock_quotes) do
+      Enum.map(account.positions, fn pos ->
+         %{pos | price: Map.get(stock_quotes, pos.stock , 0)}
+      end)
+    end
   end
 
   use GenServer
@@ -22,6 +37,10 @@ defmodule Stackfooter.SettlementDesk do
 
   def settle_transaction(table, %{buy_account: buy_account_name, sell_account: sell_account_name, stock: stock, fill: fill}) do
     GenServer.cast(table, {:settle_transaction, buy_account_name, sell_account_name, stock, fill})
+  end
+
+  def all_accounts(accounts) do
+    :ets.select(accounts, [{{:_, :"$1"}, [], [:"$1"]}])
   end
 
   def lookup(accounts, name) when is_atom(accounts) do

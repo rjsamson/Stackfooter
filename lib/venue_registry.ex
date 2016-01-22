@@ -19,6 +19,10 @@ defmodule Stackfooter.VenueRegistry do
     GenServer.call(pid, {:create, name, tickers})
   end
 
+  def all_venues(pid) do
+    :ets.select(pid, [{{:_, :"$1"}, [], [:"$1"]}])
+  end
+
   def init(table) do
     venue_names = :ets.new(table, [:named_table, read_concurrency: true])
     {:ok, venue_names}

@@ -33,6 +33,8 @@ defmodule Stackfooter.Router do
     post "/venues/:venue/stocks/:stock/orders/:id/cancel", VenueController, :cancel_order
     delete "/venues/:venue/stocks/:stock/orders/:id", VenueController, :cancel_order
     post "/venues/:venue/stocks/:stock/orders", VenueController, :place_order
+    get "/scores", ScoreController, :all_scores
+    get "/scores/:account", ScoreController, :score
   end
 
   # Other scopes may use custom stacks.

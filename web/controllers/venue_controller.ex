@@ -1,7 +1,9 @@
 defmodule Stackfooter.VenueController do
   use Stackfooter.Web, :controller
 
-  plug Stackfooter.Plugs.Api.Authenticate
+  plug Stackfooter.Plugs.Api.Authenticate when action in [:order_status, :cancel_order, :all_orders,
+                                    :all_orders_stock, :place_order]
+
   plug :parse_body_params when action in [:place_order]
   plug :check_venue when action in [:heartbeat, :stocks, :orderbook, :get_quote,
                                     :order_status, :cancel_order, :all_orders,

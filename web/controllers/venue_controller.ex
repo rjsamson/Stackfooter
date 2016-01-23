@@ -100,8 +100,10 @@ defmodule Stackfooter.VenueController do
     account = Map.get(conn.body_params, "account")
     direction = Map.get(conn.body_params, "direction")
     order_type = Map.get(conn.body_params, "orderType")
-    qty = Map.get(conn.body_params, "qty")
-    price = Map.get(conn.body_params, "price", 0)
+
+    qty = check_integer_param(Map.get(conn.body_params, "qty", 0))
+    price = check_integer_param(Map.get(conn.body_params, "price", 0))
+
     stock = Map.get(conn.body_params, "stock")
     venue = Map.get(conn.body_params, "venue")
 
@@ -140,6 +142,19 @@ defmodule Stackfooter.VenueController do
     else
       json = keys |> List.first |> Poison.Parser.parse!()
       %{conn | body_params: json}
+    end
+  end
+
+  defp check_integer_param(param) do
+    if is_binary(param) do
+      case Integer.parse(param) do
+        {parsed, _} ->
+          parsed
+        :error ->
+          nil
+      end
+    else
+      param
     end
   end
 end

@@ -22,7 +22,11 @@ defmodule Stackfooter do
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Stackfooter.Supervisor]
-    Supervisor.start_link(children, opts)
+    app_pid = Supervisor.start_link(children, opts)
+
+    Stackfooter.Bootstrap.bootstrap
+
+    app_pid
   end
 
   # Tell Phoenix to update the endpoint configuration

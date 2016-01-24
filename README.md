@@ -17,9 +17,10 @@ with Stackfooter is to do the following:
 
   1. Install [Elixir](https://www.elixir-lang.org)
   2. Install dependencies with `mix deps.get`
-  3. Start phoenix in iex mode with `iex -S mix phoenix.server`
-  4. Copy the contents of `priv/scripts/bootstrap.exs` (or something like it) into the console
-  5. Use the API as you usually would at http://localhost:4000
+  3. Create a dev.secret.exs file to populate an API key `cp config/dev.secret.example.exs config/dev.secret.exs`
+  4. Add any additional API keys / accounts or venues / tickers to lib/stackfooter/bootstrap.ex
+  5. Start phoenix in iex mode with `iex -S mix phoenix.server`
+  6. Use the API as you usually would at http://localhost:4000
 
 ## TODO
 
@@ -27,6 +28,7 @@ with Stackfooter is to do the following:
   * ~~Full API compatibility~~
   * ~~Settlement Desk for position tracking~~
   * ~~Scores API~~
+  * ~~Bootstrap with default venues and API keys~~
   * Websockets
   * Web interface for setup and control
 

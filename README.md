@@ -30,6 +30,7 @@ with Stackfooter is to do the following:
   * ~~Scores API~~
   * ~~Bootstrap with default venues and API keys~~
   * Websockets
+  * Add JSON API for configuration and control of Venues / Tickers
   * Web interface for setup and control
 
 ## Thanks

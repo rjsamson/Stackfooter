@@ -20,7 +20,7 @@ with Stackfooter is to do the following:
   3. Create a dev.secret.exs file to populate an API key `cp config/dev.secret.example.exs config/dev.secret.exs`
   4. Add any additional API keys / accounts or venues / tickers to lib/stackfooter/bootstrap.ex
   5. Start phoenix in iex mode with `iex -S mix phoenix.server`
-  6. Use the API as you usually would at http://localhost:4000
+  6. Use the API as you usually would at http://localhost:4000 with the API keys and Venue from the config
 
 ## TODO
 

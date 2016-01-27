@@ -33,4 +33,8 @@ defmodule Stackfooter.Order do
 
     filled
   end
+
+  def order_map_with_ok(order) do
+    Map.delete(order, :__struct__) |> Map.put(:ok, true)
+  end
 end

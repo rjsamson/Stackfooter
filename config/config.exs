@@ -12,7 +12,15 @@ config :stackfooter, Stackfooter.Endpoint,
   secret_key_base: "PIVh7s0WjKjUS/uxgCFoT40nhMSJvqlVfNBAePcPMdUCQg9m2f6uZDsx/M22t/4i",
   render_errors: [accepts: ~w(html json)],
   pubsub: [name: Stackfooter.PubSub,
-           adapter: Phoenix.PubSub.PG2]
+           adapter: Phoenix.PubSub.PG2],
+  http: [dispatch: [
+         {:_, [
+           {"/ob/api/ws/:trading_account/venues/:venue/tickertape/stocks/:stock", Stackfooter.TickerSocket, []},
+           {"/ob/api/ws/:trading_account/venues/:venue/tickertape", Stackfooter.TickerSocket, []},
+           {"/ob/api/ws/:trading_account/venues/:venue/executions/stocks/:stock", Stackfooter.ExecutionSocket, []},
+           {"/ob/api/ws/:trading_account/venues/:venue/executions", Stackfooter.ExecutionSocket, []},
+           {:_, Plug.Adapters.Cowboy.Handler, {Stackfooter.Endpoint, []}}
+           ]}]]
 
 # Configures Elixir's Logger
 config :logger, :console,

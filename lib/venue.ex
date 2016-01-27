@@ -63,31 +63,8 @@ defmodule Stackfooter.Venue do
     end)
 
     last_execution = last_executions[symbol]
-    bid_info = bid_ask_info(open_orders, symbol, "buy")
-    ask_info = bid_ask_info(open_orders, symbol, "sell")
 
-    stock_quote = %{"ok" => true, "symbol" => symbol, "venue" => venue,
-              "bidSize" => bid_info[:size],
-              "askSize" => ask_info[:size], "bidDepth" => bid_info[:depth],
-              "askDepth" => ask_info[:depth], "last" => last_execution.price,
-              "lastSize" => last_execution.qty, "lastTrade" => last_execution.ts,
-              "quoteTime" => get_timestamp}
-
-    stock_quote =
-      case bid_info[:price] do
-        0 ->
-          stock_quote
-        _ ->
-          Map.put(stock_quote, "bid", bid_info[:price])
-      end
-
-    stock_quote =
-      case ask_info[:price] do
-        0 ->
-          stock_quote
-        _ ->
-          Map.put(stock_quote, "ask", ask_info[:price])
-      end
+    stock_quote = generate_quote(open_orders, last_execution, symbol, venue) |> Map.put("ok", true)
 
     {:reply, {:ok, stock_quote}, state}
   end
@@ -183,6 +160,16 @@ defmodule Stackfooter.Venue do
 
     {new_order, new_open_orders, new_closed_orders, new_last_executions} = process_order(order, open_orders, last_executions)
 
+    new_last_execution = new_last_executions[symbol]
+
+    stock_quote = generate_quote(new_open_orders, new_last_execution, symbol, venue)
+    ticker_quote = %{"ok" => true, "quote" => stock_quote}
+
+    IO.inspect ticker_quote
+
+    Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{account}-#{venue}", {:ticker, ticker_quote}
+    Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{account}-#{venue}-#{symbol}", {:ticker, ticker_quote}
+
     {:reply, {:ok, new_order}, {num_orders + 1, new_last_executions, venue, tickers, new_closed_orders ++ closed_orders, new_open_orders}}
   end
 
@@ -222,6 +209,36 @@ defmodule Stackfooter.Venue do
   #   end)
   #   |> Map.values
   # end
+
+  defp generate_quote(open_orders, last_execution, symbol, venue) do
+    bid_info = bid_ask_info(open_orders, symbol, "buy")
+    ask_info = bid_ask_info(open_orders, symbol, "sell")
+
+    stock_quote = %{"symbol" => symbol, "venue" => venue,
+              "bidSize" => bid_info[:size],
+              "askSize" => ask_info[:size], "bidDepth" => bid_info[:depth],
+              "askDepth" => ask_info[:depth], "last" => last_execution.price,
+              "lastSize" => last_execution.qty, "lastTrade" => last_execution.ts,
+              "quoteTime" => get_timestamp}
+
+    stock_quote =
+      case bid_info[:price] do
+        0 ->
+          stock_quote
+        _ ->
+          Map.put(stock_quote, "bid", bid_info[:price])
+      end
+
+    stock_quote =
+      case ask_info[:price] do
+        0 ->
+          stock_quote
+        _ ->
+          Map.put(stock_quote, "ask", ask_info[:price])
+      end
+
+    stock_quote
+  end
 
   defp process_order(%Order{orderType: orderType} = order, orders, last_fills) do
     process_order(order, orderType, orders, last_fills)
@@ -333,14 +350,30 @@ defmodule Stackfooter.Venue do
     updated_order = Order.add_fill_to_order(order, fill)
     updated_matching_order = Order.add_fill_to_order(h, fill)
 
+    standing_id = updated_matching_order.id
+    incoming_id = updated_order.id
+    standing_complete = !updated_matching_order.open
+    incoming_complete = !updated_order.open
+    account = updated_order.account
+    venue = updated_order.venue
+    symbol = updated_order.symbol
+
+    execution_stream = %{"ok" => true, "account" => account, "venue" => venue,
+      "symbol" => symbol, "order" => Order.order_map_with_ok(updated_order),
+      "standingId" => standing_id, "incomingId" => incoming_id, "price" => fill.price,
+      "filled" => fill.qty, "filledAt" => fill.ts, "standingComplete" => standing_complete,
+      "incomingComplete" => incoming_complete}
+
     last_fills = Map.put(last_fills, order.symbol, fill)
+
+    Phoenix.PubSub.broadcast Stackfooter.PubSub, "executions:#{account}-#{venue}-#{symbol}", {:execution, execution_stream}
+    Phoenix.PubSub.broadcast Stackfooter.PubSub, "executions:#{account}-#{venue}", {:execution, execution_stream}
 
     if updated_matching_order.open do
       execute_order_fill(t, updated_order, [updated_matching_order] ++ updated_orders, closed_orders, Order.quantity_remaining(updated_order), last_fills)
     else
       execute_order_fill(t, updated_order, updated_orders, [updated_matching_order] ++ closed_orders, Order.quantity_remaining(updated_order), last_fills)
     end
-
   end
 
   defp get_buy_sell_accounts(order1, order2) do

@@ -64,7 +64,7 @@ defmodule Stackfooter.Venue do
     stock_quote = case Map.get(stock_quotes, symbol, :error)  do
       :error ->
         last_execution = last_executions[symbol]
-        StockProcessor.generate_quote(open_orders, last_execution, symbol, venue) |> Map.put("ok", true)
+        generate_quote(open_orders, last_execution, symbol, venue) |> Map.put("ok", true)
       retrieved_quote ->
         retrieved_quote
     end
@@ -165,9 +165,36 @@ defmodule Stackfooter.Venue do
 
     new_last_execution = new_last_executions[symbol]
 
-    Supervisor.start_child(Stackfooter.Venue.StockProcessor.Supervisor, [new_open_orders, new_last_execution, symbol, venue, account, self])
+    # Supervisor.start_child(Stackfooter.Venue.StockProcessor.Supervisor, [new_open_orders, new_last_execution, symbol, venue, account, self])
 
-    {:reply, {:ok, new_order}, {num_orders + 1, new_last_executions, venue, tickers, new_closed_orders ++ closed_orders, new_open_orders, stock_quotes}}
+    stock_quote = case Map.get(stock_quotes, symbol, :error)  do
+      :error ->
+        last_execution = last_executions[symbol]
+        generate_quote(open_orders, last_execution, symbol, venue) |> Map.put("ok", true)
+      retrieved_quote ->
+        retrieved_quote
+    end
+
+    stock_quote = if new_order.direction == "buy" do
+      new_bid_size = stock_quote["bidSize"] + new_order.qty
+      new_ask_size = stock_quote["askSize"] - new_order.totalFilled
+      new_ask_depth = stock_quote["askDepth"] - new_order.totalFilled
+      new_bid_depth = stock_quote["bidDepth"] + new_order.qty
+      %{stock_quote | "bidSize" => new_bid_size, "askSize" => new_ask_size, "bidDepth" => new_bid_depth, "askDepth" => new_ask_depth,
+                      "last" => new_last_execution.price, "lastSize" => new_last_execution.qty, "lastTrade" => new_last_execution.ts, "quoteTime" => get_timestamp}
+    else
+      new_bid_size = stock_quote["bidSize"] - new_order.totalFilled
+      new_ask_size = stock_quote["askSize"] + new_order.qty
+      new_ask_depth = stock_quote["askDepth"] + new_order.qty
+      new_bid_depth = stock_quote["bidDepth"] - new_order.totalFilled
+      %{stock_quote | "bidSize" => new_bid_size, "askSize" => new_ask_size, "bidDepth" => new_bid_depth, "askDepth" => new_ask_depth,
+                      "last" => new_last_execution.price, "lastSize" => new_last_execution.qty, "lastTrade" => new_last_execution.ts, "quoteTime" => get_timestamp}
+    end
+
+    Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{account}-#{venue}", {:ticker, stock_quote}
+    Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{account}-#{venue}-#{symbol}", {:ticker, stock_quote}
+
+    {:reply, {:ok, new_order}, {num_orders + 1, new_last_executions, venue, tickers, new_closed_orders ++ closed_orders, new_open_orders, Map.put(stock_quotes, symbol, stock_quote)}}
   end
 
   def handle_call({:order_book, symbol}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}) do
@@ -199,7 +226,6 @@ defmodule Stackfooter.Venue do
   end
 
   def handle_cast({:update_quote, stock_quote, symbol}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}) do
-
     {:noreply, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, Map.put(stock_quotes, symbol, stock_quote)}}
   end
 

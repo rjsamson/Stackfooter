@@ -64,7 +64,7 @@ defmodule Stackfooter.Venue do
     stock_quote = case Map.get(stock_quotes, symbol, :error)  do
       :error ->
         last_execution = last_executions[symbol]
-        StockProcessor.generate_quote(open_orders, last_execution, symbol, venue) |> Map.put("ok", true)
+        generate_quote(open_orders, last_execution, symbol, venue) |> Map.put("ok", true)
       retrieved_quote ->
         retrieved_quote
     end
@@ -170,7 +170,7 @@ defmodule Stackfooter.Venue do
     stock_quote = case Map.get(stock_quotes, symbol, :error)  do
       :error ->
         last_execution = last_executions[symbol]
-        StockProcessor.generate_quote(open_orders, last_execution, symbol, venue) |> Map.put("ok", true)
+        generate_quote(open_orders, last_execution, symbol, venue) |> Map.put("ok", true)
       retrieved_quote ->
         retrieved_quote
     end

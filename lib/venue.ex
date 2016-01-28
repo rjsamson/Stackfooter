@@ -162,13 +162,7 @@ defmodule Stackfooter.Venue do
 
     new_last_execution = new_last_executions[symbol]
 
-    stock_quote = generate_quote(new_open_orders, new_last_execution, symbol, venue)
-    ticker_quote = %{"ok" => true, "quote" => stock_quote}
-
-    IO.inspect ticker_quote
-
-    Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{account}-#{venue}", {:ticker, ticker_quote}
-    Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{account}-#{venue}-#{symbol}", {:ticker, ticker_quote}
+    Supervisor.start_child(Stackfooter.Venue.StockProcessor.Supervisor, [new_open_orders, new_last_execution, symbol, venue, account])
 
     {:reply, {:ok, new_order}, {num_orders + 1, new_last_executions, venue, tickers, new_closed_orders ++ closed_orders, new_open_orders}}
   end

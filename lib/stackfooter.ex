@@ -12,7 +12,6 @@ defmodule Stackfooter do
       # Start the Ecto repository
       supervisor(Stackfooter.Repo, []),
       supervisor(Stackfooter.Venue.Supervisor, []),
-      supervisor(Stackfooter.Venue.StockProcessor.Supervisor, []),
       # Here you could define other workers and supervisors as children
       # worker(Stackfooter.Worker, [arg1, arg2, arg3]),
       worker(Stackfooter.VenueRegistry, [Stackfooter.VenueRegistry]),

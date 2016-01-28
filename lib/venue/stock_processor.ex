@@ -1,11 +1,24 @@
 defmodule Stackfooter.Venue.StockProcessor do
   alias Stackfooter.Order
+  alias Stackfooter.Venue
 
-  def start_link(open_orders, last_execution, symbol, venue, account) do
-    Task.start_link(__MODULE__, :process_quote, [open_orders, last_execution, symbol, venue, account])
+  def start_link(open_orders, last_execution, symbol, venue, account, venue_pid) do
+    Task.start_link(__MODULE__, :process_quote, [open_orders, last_execution, symbol, venue, account, venue_pid])
   end
 
-  def process_quote(open_orders, last_execution, symbol, venue, account) do
+  def process_quote(open_orders, last_execution, symbol, venue, account, venue_pid) do
+    stock_quote = generate_quote(open_orders, last_execution, symbol, venue)
+    ticker_quote = %{"ok" => true, "quote" => stock_quote}
+
+    Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{account}-#{venue}", {:ticker, ticker_quote}
+    Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{account}-#{venue}-#{symbol}", {:ticker, ticker_quote}
+
+    Venue.update_quote(venue_pid, stock_quote, symbol)
+
+    Process.exit(self, :normal)
+  end
+
+  def generate_quote(open_orders, last_execution, symbol, venue) do
     bid_info = bid_ask_info(open_orders, symbol, "buy")
     ask_info = bid_ask_info(open_orders, symbol, "sell")
 
@@ -32,12 +45,7 @@ defmodule Stackfooter.Venue.StockProcessor do
           Map.put(stock_quote, "ask", ask_info[:price])
       end
 
-    ticker_quote = %{"ok" => true, "quote" => stock_quote}
-
-    Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{account}-#{venue}", {:ticker, ticker_quote}
-    Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{account}-#{venue}-#{symbol}", {:ticker, ticker_quote}
-
-    Process.exit(self, :normal)
+    stock_quote
   end
 
   defp bid_ask_info(orders, symbol, direction) do

@@ -1,6 +1,7 @@
 defmodule Stackfooter.Venue do
   alias Stackfooter.Order
   alias Stackfooter.Order.Fill
+  alias Stackfooter.Venue.StockProcessor
 
   use GenServer
 
@@ -32,6 +33,8 @@ defmodule Stackfooter.Venue do
 
   def heartbeat(pid), do: GenServer.call(pid, :heartbeat)
 
+  def update_quote(pid, stock_quote, symbol), do: GenServer.cast(pid, {:update_quote, stock_quote, symbol})
+
   def start_link(venue_name, tickers) do
     last_executions =
       Enum.reduce(tickers, %{}, fn(ticker, acc) ->
@@ -39,60 +42,37 @@ defmodule Stackfooter.Venue do
         Map.put(acc, ticker.symbol, fill)
       end)
 
-    GenServer.start_link(__MODULE__, {0, last_executions, venue_name, tickers, [], []}, name: String.to_atom(venue_name))
+    GenServer.start_link(__MODULE__, {0, last_executions, venue_name, tickers, [], [], %{}}, name: String.to_atom(venue_name))
   end
 
-  def handle_call(:heartbeat, _from, {_, _, venue, _, _, _} = state) do
+  def handle_call(:heartbeat, _from, {_, _, venue, _, _, _, _} = state) do
     {:reply, {:ok, %{ok: true, venue: venue}}, state}
   end
 
-  def handle_call(:tickers, _from, {_, _, _, tickers, _, _} = state) do
+  def handle_call(:tickers, _from, {_, _, _, tickers, _, _, _} = state) do
     {:reply, {:ok, tickers}, state}
   end
 
-  def handle_call({:add_ticker, {symbol, name}}, _from, {num_orders, last_execution, venue, tickers, closed_orders, open_orders}) do
+  def handle_call({:add_ticker, {symbol, name}}, _from, {num_orders, last_execution, venue, tickers, closed_orders, open_orders, stock_quotes}) do
     ticker = %Ticker{symbol: symbol, name: name}
     new_tickers = [ticker] ++ tickers
-    {:reply, {:ok, new_tickers}, {num_orders, last_execution, venue, new_tickers, closed_orders, open_orders}}
+    {:reply, {:ok, new_tickers}, {num_orders, last_execution, venue, new_tickers, closed_orders, open_orders, stock_quotes}}
   end
 
-  def handle_call({:get_quote, symbol}, _from, {_num_orders, last_executions, venue, _tickers, _closed_orders, open_orders} = state) do
+  def handle_call({:get_quote, symbol}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes} = state) do
 
-    open_orders = Enum.filter(open_orders, fn order ->
-      order.symbol == symbol
-    end)
+    stock_quote = case Map.get(stock_quotes, symbol, :error)  do
+      :error ->
+        last_execution = last_executions[symbol]
+        StockProcessor.generate_quote(open_orders, last_execution, symbol, venue) |> Map.put("ok", true)
+      retrieved_quote ->
+        retrieved_quote
+    end
 
-    last_execution = last_executions[symbol]
-    bid_info = bid_ask_info(open_orders, symbol, "buy")
-    ask_info = bid_ask_info(open_orders, symbol, "sell")
-
-    stock_quote = %{"ok" => true, "symbol" => symbol, "venue" => venue,
-              "bidSize" => bid_info[:size],
-              "askSize" => ask_info[:size], "bidDepth" => bid_info[:depth],
-              "askDepth" => ask_info[:depth], "last" => last_execution.price,
-              "lastSize" => last_execution.qty, "lastTrade" => last_execution.ts,
-              "quoteTime" => get_timestamp}
-
-    stock_quote =
-      case bid_info[:price] do
-        0 ->
-          stock_quote
-        _ ->
-          Map.put(stock_quote, "bid", bid_info[:price])
-      end
-
-    stock_quote =
-      case ask_info[:price] do
-        0 ->
-          stock_quote
-        _ ->
-          Map.put(stock_quote, "ask", ask_info[:price])
-      end
-
-    {:reply, {:ok, stock_quote}, state}
+    {:reply, {:ok, stock_quote}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, Map.put(stock_quotes, symbol, stock_quote)}}
   end
 
-  def handle_call({:order_status, order_id, account}, _from, {_, _, venue, _, closed_orders, open_orders} = state) do
+  def handle_call({:order_status, order_id, account}, _from, {_, _, venue, _, closed_orders, open_orders, _stock_quotes} = state) do
     order =
       open_orders
       |> Enum.filter(fn order -> order.id == order_id end)
@@ -121,7 +101,7 @@ defmodule Stackfooter.Venue do
     end
   end
 
-  def handle_call({:all_orders, account}, _from, {_, _, _, _, closed_orders, open_orders} = state) do
+  def handle_call({:all_orders, account}, _from, {_, _, _, _, closed_orders, open_orders, _stock_quotes} = state) do
     closed =
       closed_orders
       |> Enum.filter(fn order -> order.account == account end)
@@ -133,7 +113,7 @@ defmodule Stackfooter.Venue do
     {:reply, {:ok, open ++ closed}, state}
   end
 
-  def handle_call({:all_orders_stock, account, stock}, _from, {_, _, _, _, closed_orders, open_orders} = state) do
+  def handle_call({:all_orders_stock, account, stock}, _from, {_, _, _, _, closed_orders, open_orders, _stock_quotes} = state) do
     closed =
       closed_orders
       |> Enum.filter(fn order -> order.account == account && order.symbol == stock end)
@@ -145,7 +125,7 @@ defmodule Stackfooter.Venue do
     {:reply, {:ok, open ++ closed}, state}
   end
 
-  def handle_call({:cancel_order, order_id, account}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders}) do
+  def handle_call({:cancel_order, order_id, account}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}) do
     order_to_cancel =
       open_orders
       |> Enum.filter(fn order -> order.id == order_id end)
@@ -160,17 +140,17 @@ defmodule Stackfooter.Venue do
           |> Enum.filter(fn order -> order.id == order_id end)
           |> List.first
 
-        {:reply, {:ok, cancelled_order}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders}}
+        {:reply, {:ok, cancelled_order}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}}
       order_to_cancel.account == account ->
         new_open_orders = open_orders |> Enum.reject(fn order -> order.id == order_id end)
         cancelled_order = %{order_to_cancel | open: false}
-        {:reply, {:ok, cancelled_order}, {num_orders, last_executions, venue, tickers, [cancelled_order] ++ closed_orders, new_open_orders}}
+        {:reply, {:ok, cancelled_order}, {num_orders, last_executions, venue, tickers, [cancelled_order] ++ closed_orders, new_open_orders, stock_quotes}}
       order_to_cancel.account != account ->
-        {:reply, {:error, %{"ok" => false, "error" => "Not authorized to delete that order.  You have to own account  #{order_to_cancel.account}."}}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders}}
+        {:reply, {:error, %{"ok" => false, "error" => "Not authorized to delete that order.  You have to own account  #{order_to_cancel.account}."}}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}}
     end
   end
 
-  def handle_call({:place_order, %{direction: direction, account: account, symbol: symbol, qty: qty, orderType: orderType, price: price} = _order_info}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders}) do
+  def handle_call({:place_order, %{direction: direction, account: account, symbol: symbol, qty: qty, orderType: orderType, price: price} = _order_info}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}) do
     account = String.upcase(account)
     symbol = String.upcase(symbol)
     venue = String.upcase(venue)
@@ -183,10 +163,14 @@ defmodule Stackfooter.Venue do
 
     {new_order, new_open_orders, new_closed_orders, new_last_executions} = process_order(order, open_orders, last_executions)
 
-    {:reply, {:ok, new_order}, {num_orders + 1, new_last_executions, venue, tickers, new_closed_orders ++ closed_orders, new_open_orders}}
+    new_last_execution = new_last_executions[symbol]
+
+    Supervisor.start_child(Stackfooter.Venue.StockProcessor.Supervisor, [new_open_orders, new_last_execution, symbol, venue, account, self])
+
+    {:reply, {:ok, new_order}, {num_orders + 1, new_last_executions, venue, tickers, new_closed_orders ++ closed_orders, new_open_orders, stock_quotes}}
   end
 
-  def handle_call({:order_book, symbol}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders}) do
+  def handle_call({:order_book, symbol}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}) do
     bids =
       open_orders
       |> Enum.filter(fn order ->
@@ -211,7 +195,12 @@ defmodule Stackfooter.Venue do
 
     order_book = %{"ok" => true, "venue" => venue, "symbol" => symbol, "bids" => bids, "asks" => asks, "ts" => get_timestamp}
 
-    {:reply, {:ok, order_book}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders}}
+    {:reply, {:ok, order_book}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}}
+  end
+
+  def handle_cast({:update_quote, stock_quote, symbol}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}) do
+
+    {:noreply, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, Map.put(stock_quotes, symbol, stock_quote)}}
   end
 
   # defp consolidate_entries(entries) do
@@ -222,6 +211,36 @@ defmodule Stackfooter.Venue do
   #   end)
   #   |> Map.values
   # end
+
+  defp generate_quote(open_orders, last_execution, symbol, venue) do
+    bid_info = bid_ask_info(open_orders, symbol, "buy")
+    ask_info = bid_ask_info(open_orders, symbol, "sell")
+
+    stock_quote = %{"symbol" => symbol, "venue" => venue,
+              "bidSize" => bid_info[:size],
+              "askSize" => ask_info[:size], "bidDepth" => bid_info[:depth],
+              "askDepth" => ask_info[:depth], "last" => last_execution.price,
+              "lastSize" => last_execution.qty, "lastTrade" => last_execution.ts,
+              "quoteTime" => get_timestamp}
+
+    stock_quote =
+      case bid_info[:price] do
+        0 ->
+          stock_quote
+        _ ->
+          Map.put(stock_quote, "bid", bid_info[:price])
+      end
+
+    stock_quote =
+      case ask_info[:price] do
+        0 ->
+          stock_quote
+        _ ->
+          Map.put(stock_quote, "ask", ask_info[:price])
+      end
+
+    stock_quote
+  end
 
   defp process_order(%Order{orderType: orderType} = order, orders, last_fills) do
     process_order(order, orderType, orders, last_fills)
@@ -333,14 +352,30 @@ defmodule Stackfooter.Venue do
     updated_order = Order.add_fill_to_order(order, fill)
     updated_matching_order = Order.add_fill_to_order(h, fill)
 
+    standing_id = updated_matching_order.id
+    incoming_id = updated_order.id
+    standing_complete = !updated_matching_order.open
+    incoming_complete = !updated_order.open
+    account = updated_order.account
+    venue = updated_order.venue
+    symbol = updated_order.symbol
+
+    execution_stream = %{"ok" => true, "account" => account, "venue" => venue,
+      "symbol" => symbol, "order" => Order.order_map_with_ok(updated_order),
+      "standingId" => standing_id, "incomingId" => incoming_id, "price" => fill.price,
+      "filled" => fill.qty, "filledAt" => fill.ts, "standingComplete" => standing_complete,
+      "incomingComplete" => incoming_complete}
+
     last_fills = Map.put(last_fills, order.symbol, fill)
+
+    Phoenix.PubSub.broadcast Stackfooter.PubSub, "executions:#{account}-#{venue}-#{symbol}", {:execution, execution_stream}
+    Phoenix.PubSub.broadcast Stackfooter.PubSub, "executions:#{account}-#{venue}", {:execution, execution_stream}
 
     if updated_matching_order.open do
       execute_order_fill(t, updated_order, [updated_matching_order] ++ updated_orders, closed_orders, Order.quantity_remaining(updated_order), last_fills)
     else
       execute_order_fill(t, updated_order, updated_orders, [updated_matching_order] ++ closed_orders, Order.quantity_remaining(updated_order), last_fills)
     end
-
   end
 
   defp get_buy_sell_accounts(order1, order2) do

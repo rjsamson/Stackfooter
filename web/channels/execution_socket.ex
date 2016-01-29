@@ -37,12 +37,10 @@ defmodule Stackfooter.ExecutionSocket do
                 "{\"ok\":false,\"error\":\"An error occurred\"}"
             end
 
-    {:reply, {:binary, resp}, req, state}
+    {:reply, {:text, resp}, req, state}
   end
 
   def websocket_info(info, req, state) do
-    IO.puts "INFO"
-    IO.inspect info
     {:ok, req, state}
   end
 

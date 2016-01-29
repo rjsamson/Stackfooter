@@ -1,36 +1,134 @@
-<div class="jumbotron">
-  <h2><%= gettext "Welcome to %{name}", name: "Phoenix!" %></h2>
-  <p class="lead">A productive web framework that<br />does not compromise speed and maintainability.</p>
-</div>
 
-<div class="row marketing">
-  <div class="col-lg-6">
-    <h4>Resources</h4>
-    <ul>
-      <li>
-        <a href="http://phoenixframework.org/docs/overview">Guides</a>
-      </li>
-      <li>
-        <a href="http://hexdocs.pm/phoenix">Docs</a>
-      </li>
-      <li>
-        <a href="https://github.com/phoenixframework/phoenix">Source</a>
-      </li>
-    </ul>
-  </div>
+<html>
+<head>
+    <title>Stackfooter</title>
 
-  <div class="col-lg-6">
-    <h4>Help</h4>
-    <ul>
-      <li>
-        <a href="http://groups.google.com/group/phoenix-talk">Mailing list</a>
-      </li>
-      <li>
-        <a href="http://webchat.freenode.net/?channels=elixir-lang">#elixir-lang on freenode IRC</a>
-      </li>
-      <li>
-        <a href="https://twitter.com/elixirphoenix">@elixirphoenix</a>
-      </li>
-    </ul>
-  </div>
-</div>
+    <body style="background:black; color: #666; font-family: Sans-serif">
+
+
+    <canvas id="canvas" width="512" height="512" style="float:left; background:black"></canvas>
+
+    <table style="">
+        <tr>
+            <td>Bid</td>
+            <td>Last</td>
+            <td>Ask</td>
+        </tr>
+        <tr>
+            <td id="bid"></td>
+            <td id="last"></td>
+            <td id="ask"></td>
+        </tr>
+    </table>
+    </body>
+</head>
+
+<script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+<script>
+
+// -----
+// THE BELOW CODE IS UGLY. UGLY UGLY UGLY.
+// -----
+
+var url = "ws://127.0.0.1:4000/ob/api/ws/rjsamson/venues/OBEX/tickertape/stocks/NYC"
+//var url = "wss://api.stockfighter.io/ob/api/ws/asdfsdf/venues/OWIMEX/tickertape/stocks/DBAC"
+// var url = "ws://api.mumbaitex.com/ob/api/ws/trading_account/venues/MUTEX/tickertape/stocks/BREQ"
+
+var tickerSocket = new WebSocket(url)
+
+tickerSocket.onopen = function (event) {
+  console.log("Ticker WS open")
+};
+
+tickerSocket.onerror = function (event) {
+  console.log("Ticker WS erro")
+    console.log(event)
+};
+
+
+tickerSocket.onmessage = function (event) {
+  var ticker = $.parseJSON(event.data)
+  draw(ticker.quote)
+}
+
+canvas = document.getElementById("canvas");
+ctx = canvas.getContext("2d");
+i = canvas.width + 1
+speed = 1
+
+window.factor = 2
+window.offset = 5000 / factor + 300
+
+function priceToPx(price){
+    return Math.floor(canvas.height - price/factor + offset)
+}
+
+function resetDisplay(ticker){
+    i = 1
+    var centerPrice = ticker.last
+    offset = centerPrice / factor - canvas.height / 2
+    ctx.fillStyle = "black"
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#666"
+
+    var lower_dollar = Math.floor(centerPrice / 100) * 100
+    ctx.fillRect(0, priceToPx(lower_dollar), canvas.width, 1);
+
+    ctx.font="12px serif"
+    ctx.fillText((lower_dollar/100).toFixed(2), 300, priceToPx(lower_dollar))
+
+    var higher_dollar = lower_dollar + 100
+    ctx.fillRect(0, priceToPx(higher_dollar), canvas.width, 1);
+    ctx.font="12px serif"
+    ctx.fillText((higher_dollar/100).toFixed(2), 300, priceToPx(higher_dollar))
+}
+
+lastEL = $('#bid')
+bidEL = $('#ask')
+askEL = $('#last')
+
+lastLastPx = 0
+lastAskPx = 0
+lastBidPx = 0
+lastSize = 0
+function draw(ticker){
+    if(i>canvas.width){
+        resetDisplay(ticker)
+        i = 1
+    }
+
+    askEL.text('$'+(ticker.bid/100).toFixed(2))
+    bidEL.text('$'+(ticker.ask/100).toFixed(2))
+    lastEL.text('$'+(ticker.last/100).toFixed(2))
+
+    ctx.fillStyle = "blue";
+    askPx = Math.floor(canvas.height - ticker.ask/factor + offset)
+    h = lastAskPx-askPx
+    if(h<1&&h>-1){ h = 1}
+    ctx.fillRect(i, askPx, 1, h);
+    lastAskPx = askPx
+
+    ctx.fillStyle = "orange";
+    bidPx = Math.floor(canvas.height - ticker.bid/factor + offset)
+    h = lastBidPx-bidPx
+    if(h<1&&h>-1){ h = 1}
+    ctx.fillRect(i, bidPx, 1, h);
+    lastBidPx = bidPx
+
+    ctx.fillStyle = "white";
+    lastPx = Math.floor(canvas.height - ticker.last/factor + offset)
+    h = lastLastPx-lastPx
+    if(h<1&&h>-1){ h = 1}
+    if(lastSize!=ticker.lastSize){
+        ctx.fillRect(i-2, lastPx-2, 4, 4);
+    }
+    lastSize = ticker.lastSize
+    lastLastPx = lastPx
+
+
+    i = (i + speed)
+}
+
+</script>
+</html>

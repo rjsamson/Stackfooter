@@ -176,27 +176,14 @@ defmodule Stackfooter.Venue do
         retrieved_quote
     end
 
-    stock_quote = if new_order.direction == "buy" do
-      new_bid_size = stock_quote["bidSize"] + new_order.qty
-      new_ask_size = stock_quote["askSize"] - new_order.totalFilled
-      new_ask_depth = stock_quote["askDepth"] - new_order.totalFilled
-      new_bid_depth = stock_quote["bidDepth"] + new_order.qty
-      %{stock_quote | "bidSize" => new_bid_size, "askSize" => new_ask_size, "bidDepth" => new_bid_depth, "askDepth" => new_ask_depth,
-                      "last" => new_last_execution.price, "lastSize" => new_last_execution.qty, "lastTrade" => new_last_execution.ts, "quoteTime" => get_timestamp}
-    else
-      new_bid_size = stock_quote["bidSize"] - new_order.totalFilled
-      new_ask_size = stock_quote["askSize"] + new_order.qty
-      new_ask_depth = stock_quote["askDepth"] + new_order.qty
-      new_bid_depth = stock_quote["bidDepth"] - new_order.totalFilled
-      %{stock_quote | "bidSize" => new_bid_size, "askSize" => new_ask_size, "bidDepth" => new_bid_depth, "askDepth" => new_ask_depth,
-                      "last" => new_last_execution.price, "lastSize" => new_last_execution.qty, "lastTrade" => new_last_execution.ts, "quoteTime" => get_timestamp}
-    end
+    stock_quote = update_stock_quote(stock_quote, new_order, new_open_orders, new_last_execution)
+    ticker_quote = %{"ok" => true, "quote" => stock_quote}
 
     all_accounts = ApiKeyRegistry.all_account_names(ApiKeyRegistry)
 
     for acct <- all_accounts do
-      Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{acct}-#{venue}", {:ticker, stock_quote}
-      Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{acct}-#{venue}-#{symbol}", {:ticker, stock_quote}
+      Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{acct}-#{venue}", {:ticker, ticker_quote}
+      Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{acct}-#{venue}-#{symbol}", {:ticker, ticker_quote}
     end
 
     {:reply, {:ok, new_order}, {num_orders + 1, new_last_executions, venue, tickers, new_closed_orders ++ closed_orders, new_open_orders, Map.put(stock_quotes, symbol, stock_quote)}}
@@ -242,6 +229,54 @@ defmodule Stackfooter.Venue do
   #   end)
   #   |> Map.values
   # end
+
+  defp update_stock_quote(stock_quote, new_order, new_orders, new_last_execution) do
+    symbol = new_order.symbol
+
+    if new_order.direction == "buy" do
+      new_bid_size = stock_quote["bidSize"] + new_order.qty
+      new_ask_size = stock_quote["askSize"] - new_order.totalFilled
+      new_ask_depth = stock_quote["askDepth"] - new_order.totalFilled
+      new_bid_depth = stock_quote["bidDepth"] + new_order.qty
+      new_bid_price = get_bid_ask_price(new_orders, symbol, "buy")
+      new_ask_price = get_bid_ask_price(new_orders, symbol, "sell")
+      stock_quote = %{stock_quote | "bidSize" => new_bid_size, "askSize" => new_ask_size, "bidDepth" => new_bid_depth, "askDepth" => new_ask_depth,
+                      "last" => new_last_execution.price, "lastSize" => new_last_execution.qty, "lastTrade" => new_last_execution.ts, "quoteTime" => get_timestamp}
+
+      update_quote_bid_ask(stock_quote, new_bid_price, new_ask_price)
+    else
+      new_bid_size = stock_quote["bidSize"] - new_order.totalFilled
+      new_ask_size = stock_quote["askSize"] + new_order.qty
+      new_ask_depth = stock_quote["askDepth"] + new_order.qty
+      new_bid_depth = stock_quote["bidDepth"] - new_order.totalFilled
+      new_bid_price = get_bid_ask_price(new_orders, symbol, "buy")
+      new_ask_price = get_bid_ask_price(new_orders, symbol, "sell")
+      stock_quote = %{stock_quote | "bidSize" => new_bid_size, "askSize" => new_ask_size, "bidDepth" => new_bid_depth, "askDepth" => new_ask_depth,
+                      "last" => new_last_execution.price, "lastSize" => new_last_execution.qty, "lastTrade" => new_last_execution.ts, "quoteTime" => get_timestamp}
+
+      update_quote_bid_ask(stock_quote, new_bid_price, new_ask_price)
+    end
+  end
+
+  defp update_quote_bid_ask(stock_quote, new_bid_price, new_ask_price) do
+    stock_quote =
+      case new_bid_price do
+        0 ->
+          stock_quote
+        _ ->
+          Map.put(stock_quote, "bid", new_bid_price)
+      end
+
+    stock_quote =
+      case new_ask_price do
+        0 ->
+          stock_quote
+        _ ->
+          Map.put(stock_quote, "ask", new_ask_price)
+      end
+
+    stock_quote
+  end
 
   defp generate_quote(open_orders, last_execution, symbol, venue) do
     bid_info = bid_ask_info(open_orders, symbol, "buy")
@@ -441,6 +476,17 @@ defmodule Stackfooter.Venue do
     end
   end
 
+  defp get_bid_ask_price(orders, symbol, direction) do
+    filtered_orders =
+      orders
+      |> Enum.filter(fn ord ->
+        ord.open && ord.symbol == symbol && ord.direction == direction
+      end)
+      |> sort_direction(direction)
+
+    do_get_bid_ask_price(filtered_orders)
+  end
+
   defp bid_ask_info(orders, symbol, direction) do
     filtered_orders =
       orders
@@ -449,7 +495,7 @@ defmodule Stackfooter.Venue do
       end)
       |> sort_direction(direction)
 
-    bid_ask_price = get_bid_ask_price(filtered_orders)
+    bid_ask_price = do_get_bid_ask_price(filtered_orders)
     bid_ask_depth = order_quantity(filtered_orders)
     bid_ask_size =
       filtered_orders
@@ -461,11 +507,11 @@ defmodule Stackfooter.Venue do
     %{price: bid_ask_price, size: bid_ask_size, depth: bid_ask_depth}
   end
 
-  defp get_bid_ask_price([]) do
+  defp do_get_bid_ask_price([]) do
     0
   end
 
-  defp get_bid_ask_price([order|_t]) do
+  defp do_get_bid_ask_price([order|_t]) do
     order.price
   end
 

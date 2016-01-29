@@ -38,7 +38,7 @@ defmodule Stackfooter.TickerSocket do
                 "{\"ok\":false,\"error\":\"An error occurred\"}"
             end
 
-    {:reply, {:binary, resp}, req, state}
+    {:reply, {:text, resp}, req, state}
   end
 
   def websocket_info(_info, req, state) do

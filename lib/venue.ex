@@ -427,19 +427,20 @@ defmodule Stackfooter.Venue do
     venue = String.upcase(updated_order.venue)
     symbol = String.upcase(updated_order.symbol)
 
-    execution_stream = %{"ok" => true, "account" => account, "venue" => venue,
-      "symbol" => symbol, "order" => Order.order_map_with_ok(updated_order),
-      "standingId" => standing_id, "incomingId" => incoming_id, "price" => fill.price,
-      "filled" => fill.qty, "filledAt" => fill.ts, "standingComplete" => standing_complete,
-      "incomingComplete" => incoming_complete}
+    accts = [account1] ++ [account2]
+
+    for account <- accts do
+      execution_stream = %{"ok" => true, "account" => account, "venue" => venue,
+        "symbol" => symbol, "order" => Order.order_map_with_ok(updated_order),
+        "standingId" => standing_id, "incomingId" => incoming_id, "price" => fill.price,
+        "filled" => fill.qty, "filledAt" => fill.ts, "standingComplete" => standing_complete,
+        "incomingComplete" => incoming_complete}
+
+      Phoenix.PubSub.broadcast Stackfooter.PubSub, "executions:#{account}-#{venue}-#{symbol}", {:execution, execution_stream}
+      Phoenix.PubSub.broadcast Stackfooter.PubSub, "executions:#{account}-#{venue}", {:execution, execution_stream}
+    end
 
     last_fills = Map.put(last_fills, order.symbol, fill)
-
-    Phoenix.PubSub.broadcast Stackfooter.PubSub, "executions:#{account1}-#{venue}-#{symbol}", {:execution, execution_stream}
-    Phoenix.PubSub.broadcast Stackfooter.PubSub, "executions:#{account1}-#{venue}", {:execution, execution_stream}
-    Phoenix.PubSub.broadcast Stackfooter.PubSub, "executions:#{account2}-#{venue}-#{symbol}", {:execution, execution_stream}
-    Phoenix.PubSub.broadcast Stackfooter.PubSub, "executions:#{account2}-#{venue}", {:execution, execution_stream}
-
 
     if updated_matching_order.open do
       execute_order_fill(t, updated_order, [updated_matching_order] ++ updated_orders, closed_orders, Order.quantity_remaining(updated_order), last_fills)

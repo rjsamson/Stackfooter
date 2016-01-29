@@ -429,9 +429,9 @@ defmodule Stackfooter.Venue do
 
     accts = [account1] ++ [account2]
 
-    for account <- accts do
+    for account <- [account1, account2], ord <- [updated_order, updated_matching_order] do
       execution_stream = %{"ok" => true, "account" => account, "venue" => venue,
-        "symbol" => symbol, "order" => Order.order_map_with_ok(updated_order),
+        "symbol" => symbol, "order" => Order.order_map_with_ok(ord),
         "standingId" => standing_id, "incomingId" => incoming_id, "price" => fill.price,
         "filled" => fill.qty, "filledAt" => fill.ts, "standingComplete" => standing_complete,
         "incomingComplete" => incoming_complete}

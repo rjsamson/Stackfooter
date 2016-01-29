@@ -14,6 +14,10 @@ defmodule Stackfooter.ApiKeyRegistry do
     GenServer.call(pid, {:add_key, api_key, String.upcase(account)})
   end
 
+  def all_account_names(pid) do
+    :ets.select(pid, [{{:_, :"$1"}, [], [:"$1"]}])
+  end
+
   def lookup(pid, api_key) when is_atom(pid) do
     case :ets.lookup(pid, api_key) do
       [{^api_key, account}] -> {:ok, account}

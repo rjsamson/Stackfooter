@@ -2,6 +2,7 @@ defmodule Stackfooter.Venue do
   alias Stackfooter.Order
   alias Stackfooter.Order.Fill
   alias Stackfooter.Venue.StockProcessor
+  alias Stackfooter.ApiKeyRegistry
 
   use GenServer
 
@@ -191,8 +192,12 @@ defmodule Stackfooter.Venue do
                       "last" => new_last_execution.price, "lastSize" => new_last_execution.qty, "lastTrade" => new_last_execution.ts, "quoteTime" => get_timestamp}
     end
 
-    Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{account}-#{venue}", {:ticker, stock_quote}
-    Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{account}-#{venue}-#{symbol}", {:ticker, stock_quote}
+    all_accounts = ApiKeyRegistry.all_account_names(ApiKeyRegistry)
+
+    for acct <- all_accounts do
+      Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{acct}-#{venue}", {:ticker, stock_quote}
+      Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{acct}-#{venue}-#{symbol}", {:ticker, stock_quote}
+    end
 
     {:reply, {:ok, new_order}, {num_orders + 1, new_last_executions, venue, tickers, new_closed_orders ++ closed_orders, new_open_orders, Map.put(stock_quotes, symbol, stock_quote)}}
   end

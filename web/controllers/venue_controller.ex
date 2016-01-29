@@ -113,7 +113,7 @@ defmodule Stackfooter.VenueController do
       String.upcase(venue) != path_venue || String.upcase(stock) != path_stock ->
         conn |> json(%{"ok" => false, "error" => "Venue or stock did not match venue or stock provided in the URL."})
       true ->
-        order = %{account: account, direction: direction, orderType: order_type, price: price, qty: qty, symbol: stock}
+        order = %{account: String.upcase(account), direction: direction, orderType: order_type, price: price, qty: qty, symbol: stock}
         {:ok, placed_order} = Venue.place_order(conn.assigns[:venue], order)
         placed_order = Map.delete(placed_order, :__struct__) |> Map.put(:ok, true)
 

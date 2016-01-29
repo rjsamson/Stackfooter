@@ -422,7 +422,8 @@ defmodule Stackfooter.Venue do
     incoming_id = updated_order.id
     standing_complete = !updated_matching_order.open
     incoming_complete = !updated_order.open
-    account = String.upcase(updated_order.account)
+    account1 = String.upcase(updated_order.account)
+    account2 = String.upcase(updated_matching_order.account)
     venue = String.upcase(updated_order.venue)
     symbol = String.upcase(updated_order.symbol)
 
@@ -434,8 +435,11 @@ defmodule Stackfooter.Venue do
 
     last_fills = Map.put(last_fills, order.symbol, fill)
 
-    Phoenix.PubSub.broadcast Stackfooter.PubSub, "executions:#{account}-#{venue}-#{symbol}", {:execution, execution_stream}
-    Phoenix.PubSub.broadcast Stackfooter.PubSub, "executions:#{account}-#{venue}", {:execution, execution_stream}
+    Phoenix.PubSub.broadcast Stackfooter.PubSub, "executions:#{account1}-#{venue}-#{symbol}", {:execution, execution_stream}
+    Phoenix.PubSub.broadcast Stackfooter.PubSub, "executions:#{account1}-#{venue}", {:execution, execution_stream}
+    Phoenix.PubSub.broadcast Stackfooter.PubSub, "executions:#{account2}-#{venue}-#{symbol}", {:execution, execution_stream}
+    Phoenix.PubSub.broadcast Stackfooter.PubSub, "executions:#{account2}-#{venue}", {:execution, execution_stream}
+
 
     if updated_matching_order.open do
       execute_order_fill(t, updated_order, [updated_matching_order] ++ updated_orders, closed_orders, Order.quantity_remaining(updated_order), last_fills)

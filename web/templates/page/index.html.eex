@@ -30,7 +30,7 @@
 // THE BELOW CODE IS UGLY. UGLY UGLY UGLY.
 // -----
 
-var url = "ws://127.0.0.1:4000/ob/api/ws/rjsamson/venues/OBEX/tickertape/stocks/NYC"
+var url = "ws://stackfooter.rjsamson.org/ob/api/ws/rjsamson/venues/OBEX/tickertape/stocks/NYC"
 //var url = "wss://api.stockfighter.io/ob/api/ws/asdfsdf/venues/OWIMEX/tickertape/stocks/DBAC"
 // var url = "ws://api.mumbaitex.com/ob/api/ws/trading_account/venues/MUTEX/tickertape/stocks/BREQ"
 

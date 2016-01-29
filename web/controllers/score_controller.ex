@@ -1,7 +1,7 @@
 defmodule Stackfooter.ScoreController do
   use Stackfooter.Web, :controller
 
-  plug Stackfooter.Plugs.Api.Authenticate
+  plug Stackfooter.Plugs.Api.Authenticate when action in [:score]
 
   alias Stackfooter.SettlementDesk
   alias Stackfooter.SettlementDesk.Account

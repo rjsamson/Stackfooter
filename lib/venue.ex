@@ -427,17 +427,17 @@ defmodule Stackfooter.Venue do
     venue = String.upcase(updated_order.venue)
     symbol = String.upcase(updated_order.symbol)
 
-    accts = [account1] ++ [account2]
+    exec_info = [%{account: account1, order: updated_order}] ++ [%{account: account2, order: updated_matching_order}]
 
-    for account <- [account1, account2], ord <- [updated_order, updated_matching_order] do
-      execution_stream = %{"ok" => true, "account" => account, "venue" => venue,
-        "symbol" => symbol, "order" => Order.order_map_with_ok(ord),
+    for info <- exec_info do
+      execution_stream = %{"ok" => true, "account" => info[:account], "venue" => venue,
+        "symbol" => symbol, "order" => Order.order_map_with_ok(info[:order]),
         "standingId" => standing_id, "incomingId" => incoming_id, "price" => fill.price,
         "filled" => fill.qty, "filledAt" => fill.ts, "standingComplete" => standing_complete,
         "incomingComplete" => incoming_complete}
 
-      Phoenix.PubSub.broadcast Stackfooter.PubSub, "executions:#{account}-#{venue}-#{symbol}", {:execution, execution_stream}
-      Phoenix.PubSub.broadcast Stackfooter.PubSub, "executions:#{account}-#{venue}", {:execution, execution_stream}
+      Phoenix.PubSub.broadcast Stackfooter.PubSub, "executions:#{info[:account]}-#{venue}-#{symbol}", {:execution, execution_stream}
+      Phoenix.PubSub.broadcast Stackfooter.PubSub, "executions:#{info[:account]}-#{venue}", {:execution, execution_stream}
     end
 
     last_fills = Map.put(last_fills, order.symbol, fill)

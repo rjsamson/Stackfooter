@@ -135,13 +135,30 @@ defmodule Stackfooter.VenueController do
   end
 
   defp parse_body_params(conn, _params) do
+    {:ok, body, _} = read_body(conn)
     keys = Map.keys(conn.body_params)
+    IO.inspect keys
 
-    if Map.get(conn.body_params, "stock") != nil || keys == [] do
-      conn
-    else
-      json = keys |> List.first |> Poison.Parser.parse!()
-      %{conn | body_params: json}
+    cond do
+      length(keys) > 1 && String.length(body) == 0 ->
+        IO.puts "HERE ZERO"
+        conn
+      String.length(body) > 0 ->
+        IO.puts "HERE ONE"
+        case Poison.Parser.parse(body) do
+          {:ok, json} ->
+            IO.puts "PARSED"
+            %{conn | body_params: json}
+          {:error, _} ->
+            IO.puts "ERROR"
+            conn
+        end
+      length(keys) == 1 ->
+        json = keys |> List.first |> Poison.Parser.parse!()
+        %{conn | body_params: json}
+      true ->
+        IO.puts "HEREHERE"
+        conn
     end
   end
 

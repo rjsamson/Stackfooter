@@ -10,7 +10,7 @@ defmodule Stackfooter.Router do
   end
 
   pipeline :api do
-    plug :accepts, ["json"]
+    # plug :accepts, ["json"]
   end
 
   scope "/", Stackfooter do

@@ -159,7 +159,7 @@ defmodule Stackfooter.Venue do
     orderType = String.downcase(orderType)
 
     order = %Order{id: num_orders, direction: direction, venue: venue,
-                   account: account, symbol: symbol, originalQty: qty,
+                   account: String.upcase(account), symbol: symbol, originalQty: qty,
                    price: price, orderType: orderType, ts: get_timestamp, qty: qty}
 
     {new_order, new_open_orders, new_closed_orders, new_last_executions} = process_order(order, open_orders, last_executions)
@@ -422,9 +422,9 @@ defmodule Stackfooter.Venue do
     incoming_id = updated_order.id
     standing_complete = !updated_matching_order.open
     incoming_complete = !updated_order.open
-    account = updated_order.account
-    venue = updated_order.venue
-    symbol = updated_order.symbol
+    account = String.upcase(updated_order.account)
+    venue = String.upcase(updated_order.venue)
+    symbol = String.upcase(updated_order.symbol)
 
     execution_stream = %{"ok" => true, "account" => account, "venue" => venue,
       "symbol" => symbol, "order" => Order.order_map_with_ok(updated_order),

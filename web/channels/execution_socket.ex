@@ -17,9 +17,9 @@ defmodule Stackfooter.ExecutionSocket do
 
     case params do
       %{"trading_account" => account, "venue" => venue, "stock" => stock} ->
-        PubSub.subscribe Stackfooter.PubSub, self, "executions:#{account}-#{venue}-#{stock}"
+        PubSub.subscribe Stackfooter.PubSub, self, "executions:#{String.upcase(account)}-#{String.upcase(venue)}-#{String.upcase(stock)}"
       %{"trading_account" => account, "venue" => venue} ->
-        PubSub.subscribe Stackfooter.PubSub, self, "executions:#{account}-#{venue}"
+        PubSub.subscribe Stackfooter.PubSub, self, "executions:#{String.upcase(account)}-#{String.upcase(venue)}"
     end
 
     {:ok, req, %{}}

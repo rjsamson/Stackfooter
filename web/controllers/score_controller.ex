@@ -13,7 +13,8 @@ defmodule Stackfooter.ScoreController do
     accounts = SettlementDesk.all_accounts(SettlementDesk)
     accounts = Enum.map(accounts, fn account ->
       %{account | nav: Account.calculate_nav(account, stock_quotes),
-                  positions: Account.update_positions(account, stock_quotes)}
+                  positions: Account.update_positions(account, stock_quotes),
+                  name: Account.sanitize_account_name(account.name)}
     end)
 
     conn |> json(accounts)

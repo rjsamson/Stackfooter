@@ -16,4 +16,4 @@ config :stackfooter, Stackfooter.Repo,
 
 config :stackfooter, :bootstrap,
   default_api_key: "I1kaUrr1SN6HK6i870d54awmLlk76d06",
-  default_account: "rjsamson"
+  default_account: "rjsamson1124"

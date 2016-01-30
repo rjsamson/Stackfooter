@@ -22,6 +22,10 @@ defmodule Stackfooter.SettlementDesk do
          %{pos | price: Map.get(stock_quotes, pos.stock , 0)}
       end)
     end
+
+    def sanitize_account_name(account_name) do
+      String.slice(account_name, 0, String.length(account_name) - 4)
+    end
   end
 
   use GenServer

@@ -4,9 +4,9 @@ alias Stackfooter.Venue
 alias Stackfooter.Venue.Ticker
 alias Stackfooter.VenueRegistry
 
-Stackfooter.ApiKeyRegistry.add_key(Stackfooter.ApiKeyRegistry, "I1kaUrr1SN6HK6i870d54awmLlk76d06", "rjsamson")
-Stackfooter.ApiKeyRegistry.add_key(Stackfooter.ApiKeyRegistry, "SO68190NJ47of2p7he37tGY1sBKPI85F", "account2")
-Stackfooter.ApiKeyRegistry.add_key(Stackfooter.ApiKeyRegistry, "7O4fvT212gU2p1gu7v6aM25oI1rfbimg", "account3")
+Stackfooter.ApiKeyRegistry.add_key(Stackfooter.ApiKeyRegistry, "I1kaUrr1SN6HK6i870d54awmLlk76d06", "rjsamson1124")
+Stackfooter.ApiKeyRegistry.add_key(Stackfooter.ApiKeyRegistry, "SO68190NJ47of2p7he37tGY1sBKPI85F", "account21234")
+Stackfooter.ApiKeyRegistry.add_key(Stackfooter.ApiKeyRegistry, "7O4fvT212gU2p1gu7v6aM25oI1rfbimg", "account35678")
 
 nyc_tickers = [%Ticker{name: "New York Company", symbol: "NYC"}]
 VenueRegistry.create(Stackfooter.VenueRegistry, "OBEX", nyc_tickers)

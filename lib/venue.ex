@@ -179,12 +179,16 @@ defmodule Stackfooter.Venue do
     stock_quote = update_stock_quote(stock_quote, new_order, new_open_orders, new_last_execution)
     ticker_quote = %{"ok" => true, "quote" => stock_quote}
 
-    all_accounts = ApiKeyRegistry.all_account_names(ApiKeyRegistry)
+    # Uncomment for documented behavior (instead of observed behavior)
+    #
+    # all_accounts = ApiKeyRegistry.all_account_names(ApiKeyRegistry)
+    # for acct <- all_accounts do
+    #   Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{acct}-#{venue}", {:ticker, ticker_quote}
+    #   Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{acct}-#{venue}-#{symbol}", {:ticker, ticker_quote}
+    # end
 
-    for acct <- all_accounts do
-      Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{acct}-#{venue}", {:ticker, ticker_quote}
-      Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{acct}-#{venue}-#{symbol}", {:ticker, ticker_quote}
-    end
+    Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{venue}", {:ticker, ticker_quote}
+    Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{venue}-#{symbol}", {:ticker, ticker_quote}
 
     {:reply, {:ok, new_order}, {num_orders + 1, new_last_executions, venue, tickers, new_closed_orders ++ closed_orders, new_open_orders, Map.put(stock_quotes, symbol, stock_quote)}}
   end

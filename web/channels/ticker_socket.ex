@@ -17,9 +17,13 @@ defmodule Stackfooter.TickerSocket do
 
     case params do
       %{"trading_account" => account, "venue" => venue, "stock" => stock} ->
-        PubSub.subscribe Stackfooter.PubSub, self, "tickers:#{account}-#{venue}-#{stock}"
+        # Uncomment for documented behavior instead of observed behavior
+        # PubSub.subscribe Stackfooter.PubSub, self, "tickers:#{account}-#{venue}-#{stock}"
+        PubSub.subscribe Stackfooter.PubSub, self, "tickers:#{venue}-#{stock}"
       %{"trading_account" => account, "venue" => venue} ->
-        PubSub.subscribe Stackfooter.PubSub, self, "tickers:#{account}-#{venue}"
+        # Uncomment for documented behavior instead of observed behavior
+        # PubSub.subscribe Stackfooter.PubSub, self, "tickers:#{account}-#{venue}"
+        PubSub.subscribe Stackfooter.PubSub, self, "tickers:#{venue}"
         IO.puts "SUBSCRIBED"
     end
 

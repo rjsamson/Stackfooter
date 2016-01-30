@@ -6,8 +6,8 @@ A [Stockfighter](https://www.stockfighter.io) clone built in Elixir using Phoeni
 
 Right now Stackfooter implements all of the base Stockfighter API (the GM API is not supported).
 Documentation for the Stockfighter API can be found here: [https://starfighter.readme.io](https://starfighter.readme.io).
-Currently there is no position tracking, but a settlement desk will hopefully be implemented soon.
-Everything is in-memory at this point so there's no need for a DB backing things (yet).
+Position tracking and user scores have been added, as well as websockets implementing the full production
+Stockfighter API. Scores are available in JSON format at stackfooter.rjsamson.org/ob/api/scores.
 
 ## How do I use it?
 
@@ -29,7 +29,7 @@ with Stackfooter is to do the following:
   * ~~Settlement Desk for position tracking~~
   * ~~Scores API~~
   * ~~Bootstrap with default venues and API keys~~
-  * Websockets
+  * ~~Websockets~~
   * Add JSON API for configuration and control of Venues / Tickers
   * Web interface for setup and control
 

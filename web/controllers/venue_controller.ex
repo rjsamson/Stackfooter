@@ -105,6 +105,12 @@ defmodule Stackfooter.VenueController do
     price = check_integer_param(Map.get(conn.body_params, "price", 0))
 
     stock = Map.get(conn.body_params, "stock")
+    stock = if stock == nil do
+      Map.get(conn.body_params, "symbol")
+    else
+      stock
+    end
+
     venue = Map.get(conn.body_params, "venue")
 
     cond do

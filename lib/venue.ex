@@ -166,17 +166,20 @@ defmodule Stackfooter.Venue do
 
     new_last_execution = new_last_executions[symbol]
 
+    # TODO: CLEAN THIS UP
+
     # Supervisor.start_child(Stackfooter.Venue.StockProcessor.Supervisor, [new_open_orders, new_last_execution, symbol, venue, account, self])
 
-    stock_quote = case Map.get(stock_quotes, symbol, :error)  do
-      :error ->
-        last_execution = last_executions[symbol]
-        generate_quote(open_orders, last_execution, symbol, venue) |> Map.put("ok", true)
-      retrieved_quote ->
-        retrieved_quote
-    end
+    # stock_quote = case Map.get(stock_quotes, symbol, :error)  do
+    #   :error ->
+    #     last_execution = last_executions[symbol]
+    #     generate_quote(open_orders, last_execution, symbol, venue) |> Map.put("ok", true)
+    #   retrieved_quote ->
+    #     retrieved_quote
+    # end
 
-    stock_quote = update_stock_quote(stock_quote, new_order, new_open_orders, new_last_execution)
+    # stock_quote = update_stock_quote(stock_quote, new_order, new_open_orders, new_last_execution)
+    stock_quote = generate_quote(new_open_orders, new_last_execution, symbol, venue)
     ticker_quote = %{"ok" => true, "quote" => stock_quote}
 
     # Uncomment for documented behavior (instead of observed behavior)

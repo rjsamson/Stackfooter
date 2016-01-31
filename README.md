@@ -7,7 +7,7 @@ A [Stockfighter](https://www.stockfighter.io) clone built in Elixir using Phoeni
 Right now Stackfooter implements all of the base Stockfighter API (the GM API is not supported).
 Documentation for the Stockfighter API can be found here: [https://starfighter.readme.io](https://starfighter.readme.io).
 Position tracking and user scores have been added, as well as websockets implementing the full production
-Stockfighter API. Scores are available in JSON format at stackfooter.rjsamson.org/ob/api/scores.
+Stockfighter API. Scores are available in JSON format at stackfooter.rjsamson.org/ob/api/scores, and scores for a specific account are available at /ob/api/scores/:account.
 
 ## How do I use it?
 

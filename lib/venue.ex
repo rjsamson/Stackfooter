@@ -168,19 +168,6 @@ defmodule Stackfooter.Venue do
 
     new_last_execution = new_last_executions[symbol]
 
-    # TODO: CLEAN THIS UP
-
-    # Supervisor.start_child(Stackfooter.Venue.StockProcessor.Supervisor, [new_open_orders, new_last_execution, symbol, venue, account, self])
-
-    # stock_quote = case Map.get(stock_quotes, symbol, :error)  do
-    #   :error ->
-    #     last_execution = last_executions[symbol]
-    #     generate_quote(open_orders, last_execution, symbol, venue) |> Map.put("ok", true)
-    #   retrieved_quote ->
-    #     retrieved_quote
-    # end
-
-    # stock_quote = update_stock_quote(stock_quote, new_order, new_open_orders, new_last_execution)
     stock_quote = generate_quote(new_open_orders, new_last_execution, symbol, venue)
     ticker_quote = %{"ok" => true, "quote" => stock_quote}
 
@@ -248,54 +235,6 @@ defmodule Stackfooter.Venue do
   #   end)
   #   |> Map.values
   # end
-
-  defp update_stock_quote(stock_quote, new_order, new_orders, new_last_execution) do
-    symbol = new_order.symbol
-
-    if new_order.direction == "buy" do
-      new_bid_size = stock_quote["bidSize"] + new_order.qty
-      new_ask_size = stock_quote["askSize"] - new_order.totalFilled
-      new_ask_depth = stock_quote["askDepth"] - new_order.totalFilled
-      new_bid_depth = stock_quote["bidDepth"] + new_order.qty
-      new_bid_price = get_bid_ask_price(new_orders, symbol, "buy")
-      new_ask_price = get_bid_ask_price(new_orders, symbol, "sell")
-      stock_quote = %{stock_quote | "bidSize" => new_bid_size, "askSize" => new_ask_size, "bidDepth" => new_bid_depth, "askDepth" => new_ask_depth,
-                      "last" => new_last_execution.price, "lastSize" => new_last_execution.qty, "lastTrade" => new_last_execution.ts, "quoteTime" => get_timestamp}
-
-      update_quote_bid_ask(stock_quote, new_bid_price, new_ask_price)
-    else
-      new_bid_size = stock_quote["bidSize"] - new_order.totalFilled
-      new_ask_size = stock_quote["askSize"] + new_order.qty
-      new_ask_depth = stock_quote["askDepth"] + new_order.qty
-      new_bid_depth = stock_quote["bidDepth"] - new_order.totalFilled
-      new_bid_price = get_bid_ask_price(new_orders, symbol, "buy")
-      new_ask_price = get_bid_ask_price(new_orders, symbol, "sell")
-      stock_quote = %{stock_quote | "bidSize" => new_bid_size, "askSize" => new_ask_size, "bidDepth" => new_bid_depth, "askDepth" => new_ask_depth,
-                      "last" => new_last_execution.price, "lastSize" => new_last_execution.qty, "lastTrade" => new_last_execution.ts, "quoteTime" => get_timestamp}
-
-      update_quote_bid_ask(stock_quote, new_bid_price, new_ask_price)
-    end
-  end
-
-  defp update_quote_bid_ask(stock_quote, new_bid_price, new_ask_price) do
-    stock_quote =
-      case new_bid_price do
-        0 ->
-          stock_quote
-        _ ->
-          Map.put(stock_quote, "bid", new_bid_price)
-      end
-
-    stock_quote =
-      case new_ask_price do
-        0 ->
-          stock_quote
-        _ ->
-          Map.put(stock_quote, "ask", new_ask_price)
-      end
-
-    stock_quote
-  end
 
   defp generate_quote(open_orders, last_execution, symbol, venue) do
     bid_info = bid_ask_info(open_orders, symbol, "buy")
@@ -427,7 +366,6 @@ defmodule Stackfooter.Venue do
     qty_to_execute = calculate_fill_quantity(qty_remaining_to_trade, qty_available_from_match)
     price = h.price
 
-    # settle at the fills
     fill = %Fill{price: price, qty: qty_to_execute, ts: get_timestamp}
 
     {buy_account, sell_account} = get_buy_sell_accounts(order, h)

@@ -36,10 +36,12 @@ defmodule Stackfooter.Venue do
 
   def update_quote(pid, stock_quote, symbol), do: GenServer.cast(pid, {:update_quote, stock_quote, symbol})
 
+  def reset(pid), do: GenServer.cast(pid, :reset_venue)
+
   def start_link(venue_name, tickers) do
     last_executions =
       Enum.reduce(tickers, %{}, fn(ticker, acc) ->
-        fill = %Fill{price: ((:random.uniform(50) + 20) * 100), qty: (:random.uniform(50) + 20), ts: get_timestamp}
+        fill = %Fill{price: ((:rand.uniform(50) + 20) * 100), qty: (:rand.uniform(50) + 20), ts: get_timestamp}
         Map.put(acc, ticker.symbol, fill)
       end)
 
@@ -222,6 +224,16 @@ defmodule Stackfooter.Venue do
     order_book = %{"ok" => true, "venue" => venue, "symbol" => symbol, "bids" => bids, "asks" => asks, "ts" => get_timestamp}
 
     {:reply, {:ok, order_book}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}}
+  end
+
+  def handle_cast(:reset_venue, {_num_orders, _last_executions, venue, tickers, _closed_orders, _open_orders, _stock_quotes}) do
+    new_last_executions =
+      Enum.reduce(tickers, %{}, fn(ticker, acc) ->
+        fill = %Fill{price: ((:rand.uniform(50) + 20) * 100), qty: (:rand.uniform(50) + 20), ts: get_timestamp}
+        Map.put(acc, ticker.symbol, fill)
+      end)
+
+    {:noreply, {0, new_last_executions, venue, tickers, [], [], %{}}}
   end
 
   def handle_cast({:update_quote, stock_quote, symbol}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}) do

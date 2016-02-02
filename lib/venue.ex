@@ -28,7 +28,7 @@ defmodule Stackfooter.Venue do
 
   def tickers(pid), do: GenServer.call(pid, :tickers)
 
-  def add_ticker(pid, ticker), do: GenServer.call(pid, {:add_ticker, String.upcase(ticker)})
+  def add_ticker(pid, ticker_info), do: GenServer.call(pid, {:add_ticker, ticker_info})
 
   def get_quote(pid, symbol), do: GenServer.call(pid, {:get_quote, String.upcase(symbol)})
 
@@ -56,8 +56,8 @@ defmodule Stackfooter.Venue do
     {:reply, {:ok, tickers}, state}
   end
 
-  def handle_call({:add_ticker, {symbol, name}}, _from, {num_orders, last_execution, venue, tickers, closed_orders, open_orders, stock_quotes}) do
-    ticker = %Ticker{symbol: symbol, name: name}
+  def handle_call({:add_ticker, %{symbol: symbol, name: name}}, _from, {num_orders, last_execution, venue, tickers, closed_orders, open_orders, stock_quotes}) do
+    ticker = %Ticker{symbol: String.upcase(symbol), name: name}
     new_tickers = [ticker] ++ tickers
     {:reply, {:ok, new_tickers}, {num_orders, last_execution, venue, new_tickers, closed_orders, open_orders, stock_quotes}}
   end

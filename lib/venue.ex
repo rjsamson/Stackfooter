@@ -147,7 +147,26 @@ defmodule Stackfooter.Venue do
       order_to_cancel.account == account ->
         new_open_orders = open_orders |> Enum.reject(fn order -> order.id == order_id end)
         cancelled_order = %{order_to_cancel | open: false}
-        {:reply, {:ok, cancelled_order}, {num_orders, last_executions, venue, tickers, [cancelled_order] ++ closed_orders, new_open_orders, stock_quotes}}
+
+        symbol = cancelled_order.symbol
+
+        stock_quote = Map.get(stock_quotes, symbol)
+        stock_quote = update_stock_quote_from_cancellation(stock_quote, cancelled_order)
+
+        ticker_quote = %{"ok" => true, "quote" => stock_quote}
+
+        # Uncomment for documented behavior (instead of observed behavior)
+        #
+        # all_accounts = ApiKeyRegistry.all_account_names(ApiKeyRegistry)
+        # for acct <- all_accounts do
+        #   Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{acct}-#{venue}", {:ticker, ticker_quote}
+        #   Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{acct}-#{venue}-#{symbol}", {:ticker, ticker_quote}
+        # end
+
+        Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{venue}", {:ticker, ticker_quote}
+        Phoenix.PubSub.broadcast Stackfooter.PubSub, "tickers:#{venue}-#{symbol}", {:ticker, ticker_quote}
+
+        {:reply, {:ok, cancelled_order}, {num_orders, last_executions, venue, tickers, [cancelled_order] ++ closed_orders, new_open_orders, Map.put(stock_quotes, symbol, stock_quote)}}
       order_to_cancel.account != account ->
         {:reply, {:error, %{"ok" => false, "error" => "Not authorized to delete that order.  You have to own account  #{order_to_cancel.account}."}}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}}
     end
@@ -235,6 +254,22 @@ defmodule Stackfooter.Venue do
   #   end)
   #   |> Map.values
   # end
+
+  defp update_stock_quote_from_cancellation(stock_quote, cancelled_order) do
+    symbol = cancelled_order.symbol
+
+    if cancelled_order.direction == "buy" do
+      new_bid_size = stock_quote["bidSize"] - cancelled_order.qty
+      new_bid_depth = stock_quote["bidDepth"] - cancelled_order.qty
+
+      %{stock_quote | "bidSize" => new_bid_size, "bidDepth" => new_bid_depth, "quoteTime" => get_timestamp}
+    else
+      new_ask_size = stock_quote["askSize"] - cancelled_order.qty
+      new_ask_depth = stock_quote["askDepth"] - cancelled_order.qty
+
+      %{stock_quote | "askSize" => new_ask_size, "askDepth" => new_ask_depth, "quoteTime" => get_timestamp}
+    end
+  end
 
   defp generate_quote(open_orders, last_execution, symbol, venue) do
     bid_info = bid_ask_info(open_orders, symbol, "buy")

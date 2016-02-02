@@ -24,7 +24,9 @@ defmodule Stackfooter do
     opts = [strategy: :one_for_one, name: Stackfooter.Supervisor]
     app_pid = Supervisor.start_link(children, opts)
 
-    Stackfooter.Bootstrap.bootstrap
+    if Mix.env != :test do
+      Stackfooter.Bootstrap.bootstrap
+    end
 
     app_pid
   end

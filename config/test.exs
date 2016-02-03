@@ -17,3 +17,7 @@ config :stackfooter, Stackfooter.Repo,
   database: "stackfooter_test",
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox
+
+config :stackfooter, :bootstrap,
+  default_api_key: "4cy7uf63Lw2Sx6652YmLwBKy662weU4q",
+  default_account: "admin"

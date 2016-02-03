@@ -35,7 +35,7 @@ defmodule Stackfooter.VenueController do
 
   def get_quote(conn, %{"venue" => _venue, "stock" => stock}) do
     {:ok, stock_quote} = Venue.get_quote(conn.assigns[:venue], stock)
-    conn |> json(stock_quote)
+    conn |> json(Map.put(stock_quote, :ok, true))
   end
 
   def order_status(conn, %{"venue" => _venue, "stock" => _stock, "id" => order_id}) do

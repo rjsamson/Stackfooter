@@ -5,6 +5,18 @@ defmodule Stackfooter.VenueControllerTest do
 
   @apikey "4cy7uf63Lw2Sx6652YmLwBKy662weU4q"
 
+  test "api heartbeat", %{conn: conn} do
+    {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
+    Venue.reset(venue)
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> get("/ob/api/venues/obex/heartbeat")
+    resp = json_response(conn, 200)
+    assert resp
+    %{"ok" => resp_ok} = resp
+    assert resp_ok
+  end
+
   test "place order with various content types", %{conn: conn} do
     {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
     Venue.reset(venue)
@@ -37,6 +49,51 @@ defmodule Stackfooter.VenueControllerTest do
     assert resp_direction == "sell"
     assert resp_fills == []
     assert resp_qty == 100
+  end
+
+  test "orderbook" do
+    {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
+    Venue.reset(venue)
+
+    Enum.each(4200..4201, fn x ->
+      Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 7, price: x, account: "admin", orderType: "limit"})
+      :timer.sleep(20)
+      Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 7, price: x, account: "admin", orderType: "limit"})
+    end)
+
+    Enum.each(4220..4221, fn x ->
+      Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 7, price: x, account: "admin", orderType: "limit"})
+      :timer.sleep(20)
+      Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 7, price: x, account: "admin", orderType: "limit"})
+    end)
+
+    Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "admin", orderType: "market"})
+
+    expected_order_book = %{"asks" => [
+        %{"isBuy" => false, "price" => 4220, "qty" => 7},
+        %{"isBuy" => false, "price" => 4220, "qty" => 7},
+        %{"isBuy" => false, "price" => 4221, "qty" => 7},
+        %{"isBuy" => false, "price" => 4221, "qty" => 7}
+      ],
+      "bids" => [
+        %{"isBuy" => true, "price" => 4201, "qty" => 2},
+        %{"isBuy" => true, "price" => 4201, "qty" => 7},
+        %{"isBuy" => true, "price" => 4200, "qty" => 7},
+        %{"isBuy" => true, "price" => 4200, "qty" => 7}
+      ],
+      "ok" => true,
+      "symbol" => "NYC",
+      "venue" => "OBEX"}
+
+      conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+      |> get("/ob/api/venues/obex/stocks/nyc")
+      resp = json_response(conn, 200)
+      %{"ok" => resp_ok, "asks" => resp_asks, "bids" => resp_bids} = resp
+
+      assert resp
+      assert resp_ok
+      assert resp_asks == expected_order_book["asks"]
+      assert resp_bids == expected_order_book["bids"]
   end
 
   test "stock quote and order cancellation" do

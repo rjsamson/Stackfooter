@@ -102,32 +102,36 @@ defmodule Stackfooter.Venue do
     end
   end
 
-  def handle_call({:all_orders, account}, _from, {_, _, _, _, closed_orders, open_orders, _stock_quotes} = state) do
-    closed =
-      closed_orders
-      |> Stream.filter(fn order -> order.account == account end)
-      |> Stream.take(500)
-      |> Enum.to_list
+  def handle_call({:all_orders, account}, from, {_, _, _, _, closed_orders, open_orders, _stock_quotes} = state) do
+    spawn(fn ->
+      closed =
+        closed_orders
+        |> Enum.filter(fn order -> order.account == account end)
 
-    open =
-      open_orders
-      |> Enum.filter(fn order -> order.account == account end)
+      open =
+        open_orders
+        |> Enum.filter(fn order -> order.account == account end)
 
-    {:reply, {:ok, open ++ closed}, state}
+      GenServer.reply(from, {:ok, open ++ closed})
+    end)
+
+    {:noreply, state}
   end
 
-  def handle_call({:all_orders_stock, account, stock}, _from, {_, _, _, _, closed_orders, open_orders, _stock_quotes} = state) do
-    closed =
-      closed_orders
-      |> Stream.filter(fn order -> order.account == account && order.symbol == stock end)
-      |> Stream.take(500)
-      |> Enum.to_list
+  def handle_call({:all_orders_stock, account, stock}, from, {_, _, _, _, closed_orders, open_orders, _stock_quotes} = state) do
+    spawn(fn ->
+      closed =
+        closed_orders
+        |> Enum.filter(fn order -> order.account == account && order.symbol == stock end)
 
-    open =
-      open_orders
-      |> Enum.filter(fn order -> order.account == account && order.symbol == stock end)
+      open =
+        open_orders
+        |> Enum.filter(fn order -> order.account == account && order.symbol == stock end)
 
-    {:reply, {:ok, open ++ closed}, state}
+      GenServer.reply(from, {:ok, open ++ closed})
+    end)
+
+    {:noreply, state}
   end
 
   def handle_call({:cancel_order, order_id, account}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}) do

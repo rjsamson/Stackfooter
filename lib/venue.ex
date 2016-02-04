@@ -75,22 +75,20 @@ defmodule Stackfooter.Venue do
     {:reply, {:ok, stock_quote}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, Map.put(stock_quotes, symbol, stock_quote)}}
   end
 
-  def handle_call({:order_status, order_id, account}, _from, {_, _, venue, _, closed_orders, open_orders, _stock_quotes} = state) do
+  def handle_call({:order_status, order_id, account}, _from, {num_orders, _, venue, _, closed_orders, open_orders, _stock_quotes} = state) do
     order =
       open_orders
-      |> Enum.filter(fn order -> order.id == order_id end)
-      |> List.first
+      |> Enum.find(fn order -> order.id == order_id end)
 
     if order == nil do
       order =
         closed_orders
-        |> Enum.filter(fn order -> order.id == order_id end)
-        |> List.first
+        |> Enum.find(fn order -> order.id == order_id end)
     end
 
     cond do
-      order == nil ->
-        {:reply, {:error, %{ok: false, error: "No order with that id / account"}}, state}
+      order_id >= num_orders || order_id < 0 ->
+        {:reply, {:error, %{ok: false, error: "Highest order id is #{num_orders}"}}, state}
       order.account == account ->
         order_fills =
           order.fills
@@ -107,7 +105,9 @@ defmodule Stackfooter.Venue do
   def handle_call({:all_orders, account}, _from, {_, _, _, _, closed_orders, open_orders, _stock_quotes} = state) do
     closed =
       closed_orders
-      |> Enum.filter(fn order -> order.account == account end)
+      |> Stream.filter(fn order -> order.account == account end)
+      |> Stream.take(500)
+      |> Enum.to_list
 
     open =
       open_orders
@@ -119,7 +119,9 @@ defmodule Stackfooter.Venue do
   def handle_call({:all_orders_stock, account, stock}, _from, {_, _, _, _, closed_orders, open_orders, _stock_quotes} = state) do
     closed =
       closed_orders
-      |> Enum.filter(fn order -> order.account == account && order.symbol == stock end)
+      |> Stream.filter(fn order -> order.account == account && order.symbol == stock end)
+      |> Stream.take(500)
+      |> Enum.to_list
 
     open =
       open_orders
@@ -131,8 +133,7 @@ defmodule Stackfooter.Venue do
   def handle_call({:cancel_order, order_id, account}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}) do
     order_to_cancel =
       open_orders
-      |> Enum.filter(fn order -> order.id == order_id end)
-      |> List.first
+      |> Enum.find(fn order -> order.id == order_id end)
 
     cond do
       order_id >= num_orders || order_id < 0 ->
@@ -140,8 +141,7 @@ defmodule Stackfooter.Venue do
       order_to_cancel == nil ->
         cancelled_order =
           closed_orders
-          |> Enum.filter(fn order -> order.id == order_id end)
-          |> List.first
+          |> Enum.find(fn order -> order.id == order_id end)
 
         {:reply, {:ok, cancelled_order}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}}
       order_to_cancel.account == account ->

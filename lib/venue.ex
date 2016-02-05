@@ -75,31 +75,35 @@ defmodule Stackfooter.Venue do
     {:reply, {:ok, stock_quote}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, Map.put(stock_quotes, symbol, stock_quote)}}
   end
 
-  def handle_call({:order_status, order_id, account}, _from, {num_orders, _, venue, _, closed_orders, open_orders, _stock_quotes} = state) do
-    order =
-      open_orders
-      |> Enum.find(fn order -> order.id == order_id end)
-
-    if order == nil do
+  def handle_call({:order_status, order_id, account}, from, {num_orders, _, venue, _, closed_orders, open_orders, _stock_quotes} = state) do
+    spawn(fn ->
       order =
-        closed_orders
+        open_orders
         |> Enum.find(fn order -> order.id == order_id end)
-    end
 
-    cond do
-      order_id >= num_orders || order_id < 0 ->
-        {:reply, {:error, %{ok: false, error: "Highest order id is #{num_orders}"}}, state}
-      order.account == account ->
-        order_fills =
-          order.fills
-          |> Enum.map(fn fill -> %{price: fill.price, qty: fill.qty, ts: fill.ts} end)
+      if order == nil do
+        order =
+          closed_orders
+          |> Enum.find(fn order -> order.id == order_id end)
+      end
 
-        order_status = %{ok: true, symbol: order.symbol, venue: venue, direction: order.direction, originalQty: order.originalQty, qty: Order.quantity_remaining(order), price: order.price, orderType: order.orderType, id: order.id, account: order.account, ts: order.ts, fills: order_fills, totalFilled: order.totalFilled, open: order.open}
+      cond do
+        order_id >= num_orders || order_id < 0 ->
+          GenServer.reply(from, {:error, %{ok: false, error: "Highest order id is #{num_orders}"}})
+        order.account == account ->
+          order_fills =
+            order.fills
+            |> Enum.map(fn fill -> %{price: fill.price, qty: fill.qty, ts: fill.ts} end)
 
-        {:reply, {:ok, order_status}, state}
-      true ->
-        {:reply, {:error, %{ok: false, error: "Only account owner can access that order"}}, state}
-    end
+          order_status = %{ok: true, symbol: order.symbol, venue: venue, direction: order.direction, originalQty: order.originalQty, qty: Order.quantity_remaining(order), price: order.price, orderType: order.orderType, id: order.id, account: order.account, ts: order.ts, fills: order_fills, totalFilled: order.totalFilled, open: order.open}
+
+          GenServer.reply(from, {:ok, order_status})
+        true ->
+          GenServer.reply(from, {:error, %{ok: false, error: "Only account owner can access that order"}})
+      end
+    end)
+
+    {:noreply, state}
   end
 
   def handle_call({:all_orders, account}, from, {_, _, _, _, closed_orders, open_orders, _stock_quotes} = state) do
@@ -134,20 +138,24 @@ defmodule Stackfooter.Venue do
     {:noreply, state}
   end
 
-  def handle_call({:cancel_order, order_id, account}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}) do
+  def handle_call({:cancel_order, order_id, account}, from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes} = state) do
     order_to_cancel =
       open_orders
       |> Enum.find(fn order -> order.id == order_id end)
 
     cond do
       order_id >= num_orders || order_id < 0 ->
-        {:reply, {:error, %{"ok" => false, "error" => "Highest order id is #{num_orders}"}}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders}}
+        {:reply, {:error, %{"ok" => false, "error" => "Highest order id is #{num_orders}"}}, state}
       order_to_cancel == nil ->
-        cancelled_order =
-          closed_orders
-          |> Enum.find(fn order -> order.id == order_id end)
+        spawn(fn ->
+          cancelled_order =
+            closed_orders
+            |> Enum.find(fn order -> order.id == order_id end)
 
-        {:reply, {:ok, cancelled_order}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}}
+          GenServer.reply(from, {:ok, cancelled_order})
+        end)
+
+        {:noreply, state}
       order_to_cancel.account == account ->
         new_open_orders = open_orders |> Enum.reject(fn order -> order.id == order_id end)
         cancelled_order = %{order_to_cancel | open: false}
@@ -172,7 +180,7 @@ defmodule Stackfooter.Venue do
 
         {:reply, {:ok, cancelled_order}, {num_orders, last_executions, venue, tickers, [cancelled_order] ++ closed_orders, new_open_orders, Map.put(stock_quotes, symbol, stock_quote)}}
       order_to_cancel.account != account ->
-        {:reply, {:error, %{"ok" => false, "error" => "Not authorized to delete that order.  You have to own account  #{order_to_cancel.account}."}}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}}
+        {:reply, {:error, %{"ok" => false, "error" => "Not authorized to delete that order.  You have to own account  #{order_to_cancel.account}."}}, state}
     end
   end
 
@@ -208,32 +216,36 @@ defmodule Stackfooter.Venue do
     {:reply, {:ok, new_order}, {num_orders + 1, new_last_executions, venue, tickers, new_closed_orders ++ closed_orders, new_open_orders, Map.put(stock_quotes, symbol, stock_quote)}}
   end
 
-  def handle_call({:order_book, symbol}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}) do
-    bids =
-      open_orders
-      |> Enum.filter(fn order ->
-        order.direction == "buy" && order.symbol == symbol
-      end)
-      |> Enum.sort(&(&1.ts > &2.ts))
-      |> Enum.sort(&(&1.price > &2.price))
-      |> Enum.map(fn order ->
-        %OrderbookEntry{price: order.price, qty: order.qty, isBuy: true}
-      end)
+  def handle_call({:order_book, symbol}, from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes} = state) do
+    spawn(fn ->
+      bids =
+        open_orders
+        |> Enum.filter(fn order ->
+          order.direction == "buy" && order.symbol == symbol
+        end)
+        |> Enum.sort(&(&1.ts > &2.ts))
+        |> Enum.sort(&(&1.price > &2.price))
+        |> Enum.map(fn order ->
+          %OrderbookEntry{price: order.price, qty: order.qty, isBuy: true}
+        end)
 
-    asks =
-      open_orders
-      |> Enum.filter(fn order ->
-        order.direction == "sell" && order.symbol == symbol
-      end)
-      |> Enum.sort(&(&1.ts > &2.ts))
-      |> Enum.sort(&(&1.price < &2.price))
-      |> Enum.map(fn order ->
-        %OrderbookEntry{price: order.price, qty: order.qty, isBuy: false}
-      end)
+      asks =
+        open_orders
+        |> Enum.filter(fn order ->
+          order.direction == "sell" && order.symbol == symbol
+        end)
+        |> Enum.sort(&(&1.ts > &2.ts))
+        |> Enum.sort(&(&1.price < &2.price))
+        |> Enum.map(fn order ->
+          %OrderbookEntry{price: order.price, qty: order.qty, isBuy: false}
+        end)
 
-    order_book = %{"ok" => true, "venue" => venue, "symbol" => symbol, "bids" => bids, "asks" => asks, "ts" => get_timestamp}
+      order_book = %{"ok" => true, "venue" => venue, "symbol" => symbol, "bids" => bids, "asks" => asks, "ts" => get_timestamp}
 
-    {:reply, {:ok, order_book}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}}
+      GenServer.reply(from, {:ok, order_book})
+    end)
+
+    {:noreply, state}
   end
 
   def handle_cast(:reset_venue, {_num_orders, _last_executions, venue, tickers, _closed_orders, _open_orders, _stock_quotes}) do

@@ -9,6 +9,7 @@ defmodule Stackfooter.Api.AdminController do
 
   def reset(conn, _params) do
     Venue.reset(conn.assigns[:venue])
+    Beaker.Counter.clear()
     conn |> json(%{"ok" => true, "error" => ""})
   end
 

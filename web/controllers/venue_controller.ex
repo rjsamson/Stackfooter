@@ -54,7 +54,7 @@ defmodule Stackfooter.VenueController do
     end
   end
 
-  def cancel_order(conn, %{"venue" => _venue, "stock" => _stock, "id" => order_id}) do
+  def cancel_order(conn, %{"venue" => venue, "stock" => _stock, "id" => order_id}) do
     case Integer.parse(order_id) do
       {val, _} ->
         order_id = val
@@ -65,8 +65,8 @@ defmodule Stackfooter.VenueController do
 
         diff = end_time - start_time
 
-        Beaker.TimeSeries.sample("Venue:CancelTime", diff / 1000)
-        Beaker.Counter.incr("Venue:Cancels")
+        Beaker.TimeSeries.sample("Venue:#{venue}:CancelTime", diff / 1000)
+        Beaker.Counter.incr("#{venue}:Cancels")
 
         case cancellations do
           {:ok, cancelled_order} ->
@@ -137,8 +137,8 @@ defmodule Stackfooter.VenueController do
 
         diff = end_time - start_time
 
-        Beaker.TimeSeries.sample("Venue:OrderTime", diff / 1000)
-        Beaker.Counter.incr("Venue:Orders")
+        Beaker.TimeSeries.sample("Venue:#{venue}:OrderTime", diff / 1000)
+        Beaker.Counter.incr("#{venue}:Orders")
         placed_order = Map.delete(placed_order, :__struct__) |> Map.put(:ok, true)
 
         conn |> json(placed_order)

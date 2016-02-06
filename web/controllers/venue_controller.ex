@@ -1,5 +1,6 @@
 defmodule Stackfooter.VenueController do
   use Stackfooter.Web, :controller
+  require Beaker.TimeSeries
 
   plug Stackfooter.Plugs.Api.Authenticate when action in [:order_status, :cancel_order, :all_orders,
                                     :all_orders_stock, :place_order]
@@ -57,7 +58,17 @@ defmodule Stackfooter.VenueController do
     case Integer.parse(order_id) do
       {val, _} ->
         order_id = val
-        case Venue.cancel_order(conn.assigns[:venue], order_id, conn.assigns[:account]) do
+
+        start_time = Beaker.Time.now
+        cancellations = Venue.cancel_order(conn.assigns[:venue], order_id, conn.assigns[:account])
+        end_time = Beaker.Time.now
+
+        diff = end_time - start_time
+
+        Beaker.TimeSeries.sample("Venue:CancelTime", diff / 1000)
+        Beaker.Counter.incr("Venue:Cancels")
+
+        case cancellations do
           {:ok, cancelled_order} ->
             cancelled_order = Map.delete(cancelled_order, :__struct__) |> Map.put(:ok, true)
             conn |> json(cancelled_order)
@@ -120,7 +131,14 @@ defmodule Stackfooter.VenueController do
         conn |> json(%{"ok" => false, "error" => "Venue or stock did not match venue or stock provided in the URL."})
       true ->
         order = %{account: String.upcase(account), direction: direction, orderType: order_type, price: price, qty: qty, symbol: stock}
+        start_time = Beaker.Time.now
         {:ok, placed_order} = Venue.place_order(conn.assigns[:venue], order)
+        end_time = Beaker.Time.now
+
+        diff = end_time - start_time
+
+        Beaker.TimeSeries.sample("Venue:OrderTime", diff / 1000)
+        Beaker.Counter.incr("Venue:Orders")
         placed_order = Map.delete(placed_order, :__struct__) |> Map.put(:ok, true)
 
         conn |> json(placed_order)

@@ -1,6 +1,8 @@
 defmodule Stackfooter.Endpoint do
   use Phoenix.Endpoint, otp_app: :stackfooter
 
+  plug Beaker.Integrations.Phoenix
+
   socket "/socket", Stackfooter.UserSocket
 
   # Serve at "/" the static files from "priv/static" directory.

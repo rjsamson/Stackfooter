@@ -13,6 +13,8 @@ defmodule Stackfooter.Router do
     # plug :accepts, ["json"]
   end
 
+  forward "/beaker", Beaker.Web
+
   scope "/", Stackfooter do
     pipe_through :browser # Use the default browser stack
 

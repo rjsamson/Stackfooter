@@ -59,7 +59,10 @@ defmodule Stackfooter.Venue do
   def handle_call({:add_ticker, %{symbol: symbol, name: name}}, _from, {num_orders, last_execution, venue, tickers, closed_orders, open_orders, stock_quotes}) do
     ticker = %Ticker{symbol: String.upcase(symbol), name: name}
     new_tickers = [ticker] ++ tickers
-    {:reply, {:ok, new_tickers}, {num_orders, last_execution, venue, new_tickers, closed_orders, open_orders, stock_quotes}}
+
+    fill = %Fill{price: ((:rand.uniform(50) + 20) * 100), qty: (:rand.uniform(50) + 20), ts: get_timestamp}
+
+    {:reply, {:ok, new_tickers}, {num_orders, last_execution, venue, new_tickers, closed_orders, open_orders, Map.put(stock_quotes, ticker.symbol, fill)}}
   end
 
   def handle_call({:get_quote, symbol}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes} = state) do

@@ -127,6 +127,8 @@ defmodule Stackfooter.VenueController do
     cond do
       account == nil || direction == nil || order_type == nil || !is_integer(qty) || !is_integer(price) || stock == nil || venue == nil ->
         conn |> json(%{"ok" => false, "error" => "You failed to include some required parameters for the order, or formatted the price or quantity incorrectly."})
+      qty < 0 || price < 0 ->
+        conn |> json(%{"ok" => false, "error" => "Please include a valid price and quantity."})
       String.upcase(venue) != path_venue || String.upcase(stock) != path_stock ->
         conn |> json(%{"ok" => false, "error" => "Venue or stock did not match venue or stock provided in the URL."})
       true ->

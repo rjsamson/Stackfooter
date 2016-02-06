@@ -2,6 +2,7 @@ defmodule Stackfooter.Api.AdminController do
   use Stackfooter.Web, :controller
   alias Stackfooter.VenueRegistry
   alias Stackfooter.Venue
+  alias Stackfooter.SettlementDesk
 
   plug Stackfooter.Plugs.Api.Authenticate
   plug Stackfooter.Plugs.Api.AuthorizeAdmin
@@ -10,6 +11,7 @@ defmodule Stackfooter.Api.AdminController do
   def reset(conn, _params) do
     Venue.reset(conn.assigns[:venue])
     Beaker.Counter.clear()
+    SettlementDesk.reset_accounts(SettlementDesk)
     conn |> json(%{"ok" => true, "error" => ""})
   end
 

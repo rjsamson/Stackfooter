@@ -43,6 +43,10 @@ defmodule Stackfooter.SettlementDesk do
     GenServer.cast(table, {:settle_transaction, buy_account_name, sell_account_name, stock, fill})
   end
 
+  def reset_accounts(accounts) do
+    :ets.delete_all_objects(accounts)
+  end
+
   def all_accounts(accounts) do
     :ets.select(accounts, [{{:_, :"$1"}, [], [:"$1"]}])
   end

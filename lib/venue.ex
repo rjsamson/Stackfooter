@@ -56,10 +56,13 @@ defmodule Stackfooter.Venue do
     {:reply, {:ok, tickers}, state}
   end
 
-  def handle_call({:add_ticker, %{symbol: symbol, name: name}}, _from, {num_orders, last_execution, venue, tickers, closed_orders, open_orders, stock_quotes}) do
+  def handle_call({:add_ticker, %{symbol: symbol, name: name}}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}) do
     ticker = %Ticker{symbol: String.upcase(symbol), name: name}
     new_tickers = [ticker] ++ tickers
-    {:reply, {:ok, new_tickers}, {num_orders, last_execution, venue, new_tickers, closed_orders, open_orders, stock_quotes}}
+
+    fill = %Fill{price: ((:rand.uniform(50) + 20) * 100), qty: (:rand.uniform(50) + 20), ts: get_timestamp}
+
+    {:reply, {:ok, new_tickers}, {num_orders, Map.put(last_executions, ticker.symbol, fill), venue, new_tickers, closed_orders, open_orders, stock_quotes}}
   end
 
   def handle_call({:get_quote, symbol}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes} = state) do
@@ -158,8 +161,8 @@ defmodule Stackfooter.Venue do
 
         symbol = cancelled_order.symbol
 
-        stock_quote = Map.get(stock_quotes, symbol)
-        stock_quote = update_stock_quote_from_cancellation(stock_quote, cancelled_order)
+        last_execution = Map.get(last_executions, symbol)
+        stock_quote = generate_quote(new_open_orders, last_execution, symbol, venue)
 
         ticker_quote = %{"ok" => true, "quote" => stock_quote}
 

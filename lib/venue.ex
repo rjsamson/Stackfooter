@@ -161,8 +161,8 @@ defmodule Stackfooter.Venue do
 
         symbol = cancelled_order.symbol
 
-        stock_quote = Map.get(stock_quotes, symbol)
-        stock_quote = update_stock_quote_from_cancellation(stock_quote, cancelled_order)
+        last_execution = Map.get(last_executions, symbol)
+        stock_quote = generate_quote(new_open_orders, last_execution, symbol, venue)
 
         ticker_quote = %{"ok" => true, "quote" => stock_quote}
 

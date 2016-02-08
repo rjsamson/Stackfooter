@@ -266,22 +266,6 @@ defmodule Stackfooter.Venue do
   #   |> Map.values
   # end
 
-  defp update_stock_quote_from_cancellation(stock_quote, cancelled_order) do
-    symbol = cancelled_order.symbol
-
-    if cancelled_order.direction == "buy" do
-      new_bid_size = stock_quote["bidSize"] - cancelled_order.qty
-      new_bid_depth = stock_quote["bidDepth"] - cancelled_order.qty
-
-      %{stock_quote | "bidSize" => new_bid_size, "bidDepth" => new_bid_depth, "quoteTime" => get_timestamp}
-    else
-      new_ask_size = stock_quote["askSize"] - cancelled_order.qty
-      new_ask_depth = stock_quote["askDepth"] - cancelled_order.qty
-
-      %{stock_quote | "askSize" => new_ask_size, "askDepth" => new_ask_depth, "quoteTime" => get_timestamp}
-    end
-  end
-
   defp generate_quote(open_orders, last_execution, symbol, venue) do
     bid_info = bid_ask_info(open_orders, symbol, "buy")
     ask_info = bid_ask_info(open_orders, symbol, "sell")

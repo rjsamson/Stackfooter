@@ -1,8 +1,5 @@
 defmodule Stackfooter.Venue do
-  alias Stackfooter.Order
-  alias Stackfooter.Order.Fill
-  alias Stackfooter.Venue.StockProcessor
-  alias Stackfooter.ApiKeyRegistry
+  alias Stackfooter.{Order, Order.Fill, ApiKeyRegistry}
 
   use GenServer
 

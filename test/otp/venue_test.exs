@@ -1,8 +1,6 @@
 defmodule Stackfooter.VenueTest do
   use ExUnit.Case, async: true
-  alias Stackfooter.Venue
-  alias Stackfooter.VenueRegistry
-  alias Stackfooter.Venue.Ticker
+  alias Stackfooter.{Venue, VenueRegistry, Venue.Ticker}
 
   setup do
     Stackfooter.ApiKeyRegistry.add_key(Stackfooter.ApiKeyRegistry, "4cy7uf63Lw2Sx6652YmLwBKy662weU4q", "admin")

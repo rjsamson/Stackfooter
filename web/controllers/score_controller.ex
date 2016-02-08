@@ -3,10 +3,7 @@ defmodule Stackfooter.ScoreController do
 
   plug Stackfooter.Plugs.Api.Authenticate when action in [:score]
 
-  alias Stackfooter.SettlementDesk
-  alias Stackfooter.SettlementDesk.Account
-  alias Stackfooter.VenueRegistry
-  alias Stackfooter.Venue
+  alias Stackfooter.{Venue, VenueRegistry, SettlementDesk, SettlementDesk.Account}
 
   def all_scores(conn, _params) do
     stock_quotes = get_stock_quotes

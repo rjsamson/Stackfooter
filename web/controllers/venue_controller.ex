@@ -10,8 +10,7 @@ defmodule Stackfooter.VenueController do
                                     :order_status, :cancel_order, :all_orders,
                                     :all_orders_stock, :place_order]
 
-  alias Stackfooter.Venue
-  alias Stackfooter.VenueRegistry
+  alias Stackfooter.{Venue, VenueRegistry}
 
   def heartbeat(conn, %{"venue" => _venue}) do
     {:ok, %{venue: hb_venue}} = Venue.heartbeat(conn.assigns[:venue])

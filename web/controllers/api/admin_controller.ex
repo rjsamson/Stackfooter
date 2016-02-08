@@ -1,8 +1,6 @@
 defmodule Stackfooter.Api.AdminController do
   use Stackfooter.Web, :controller
-  alias Stackfooter.VenueRegistry
-  alias Stackfooter.Venue
-  alias Stackfooter.SettlementDesk
+  alias Stackfooter.{Venue, VenueRegistry, SettlementDesk}
 
   plug Stackfooter.Plugs.Api.Authenticate
   plug Stackfooter.Plugs.Api.AuthorizeAdmin

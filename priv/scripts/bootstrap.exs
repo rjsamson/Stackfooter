@@ -1,8 +1,5 @@
 # Run this to initialize a set of demo venues / accounts
-
-alias Stackfooter.Venue
-alias Stackfooter.Venue.Ticker
-alias Stackfooter.VenueRegistry
+alias Stackfooter.{Venue, Venue.Ticker, VenueRegistry}
 
 Stackfooter.ApiKeyRegistry.add_key(Stackfooter.ApiKeyRegistry, "I1kaUrr1SN6HK6i870d54awmLlk76d06", "rjsamson1124")
 Stackfooter.ApiKeyRegistry.add_key(Stackfooter.ApiKeyRegistry, "SO68190NJ47of2p7he37tGY1sBKPI85F", "account21234")

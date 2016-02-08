@@ -1,7 +1,6 @@
 defmodule Stackfooter.VenueControllerTest do
   use Stackfooter.ConnCase
-  alias Stackfooter.VenueRegistry
-  alias Stackfooter.Venue
+  alias Stackfooter.{Venue, VenueRegistry}
 
   @apikey "4cy7uf63Lw2Sx6652YmLwBKy662weU4q"
 

@@ -1,6 +1,5 @@
 defmodule Profile do
-  alias Stackfooter.VenueRegistry
-  alias Stackfooter.Venue
+  alias Stackfooter.{Venue, VenueRegistry}
 
   def go do
     :fprof.apply(&run_test/0, [])

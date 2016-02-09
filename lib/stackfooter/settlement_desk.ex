@@ -44,7 +44,7 @@ defmodule Stackfooter.SettlementDesk do
   end
 
   def reset_accounts(accounts) do
-    :ets.delete_all_objects(accounts)
+    GenServer.call(accounts, :reset)
   end
 
   def all_accounts(accounts) do
@@ -59,6 +59,11 @@ defmodule Stackfooter.SettlementDesk do
         account = %Account{name: name}
         {:ok, account}
     end
+  end
+
+  def handle_call(:reset, _from, accounts) do
+    :ets.delete_all_objects(accounts)
+    {:reply, :ok, accounts}
   end
 
   def handle_cast({:settle_transaction, buy_account_name, sell_account_name, stock, fill}, accounts) do

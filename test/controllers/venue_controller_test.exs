@@ -12,8 +12,8 @@ defmodule Stackfooter.VenueControllerTest do
     |> get("/ob/api/venues/obex/heartbeat")
     resp = json_response(conn, 200)
     assert resp
-    %{"ok" => resp_ok} = resp
-    assert resp_ok
+    assert resp["ok"]
+    assert resp["venue"] == "OBEX"
   end
 
   test "place order with various content types", %{conn: conn} do

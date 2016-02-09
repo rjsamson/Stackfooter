@@ -1,5 +1,5 @@
 defmodule Stackfooter.Venue do
-  alias Stackfooter.{Order, Order.Fill, ApiKeyRegistry}
+  alias Stackfooter.{Order, Order.Fill}
 
   use GenServer
 
@@ -62,7 +62,7 @@ defmodule Stackfooter.Venue do
     {:reply, {:ok, new_tickers}, {num_orders, Map.put(last_executions, ticker.symbol, fill), venue, new_tickers, closed_orders, open_orders, stock_quotes}}
   end
 
-  def handle_call({:get_quote, symbol}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes} = state) do
+  def handle_call({:get_quote, symbol}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}) do
 
     stock_quote = case Map.get(stock_quotes, symbol, :error)  do
       :error ->
@@ -138,7 +138,7 @@ defmodule Stackfooter.Venue do
     {:noreply, state}
   end
 
-  def handle_call({:cancel_order, order_id, account}, from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes} = state) do
+  def handle_call({:cancel_order, order_id, account}, _from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes} = state) do
     order_to_cancel =
       open_orders
       |> Enum.find(fn order -> order.id == order_id end)
@@ -212,7 +212,7 @@ defmodule Stackfooter.Venue do
     {:reply, {:ok, new_order}, {num_orders + 1, new_last_executions, venue, tickers, new_closed_orders ++ closed_orders, new_open_orders, Map.put(stock_quotes, symbol, stock_quote)}}
   end
 
-  def handle_call({:order_book, symbol}, from, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes} = state) do
+  def handle_call({:order_book, symbol}, _from, {_num_orders, _last_executions, venue, _tickers, _closed_orders, open_orders, _stock_quotes} = state) do
     bids =
       open_orders
       |> Enum.filter(fn order ->
@@ -463,17 +463,6 @@ defmodule Stackfooter.Venue do
     else
       qty_available
     end
-  end
-
-  defp get_bid_ask_price(orders, symbol, direction) do
-    filtered_orders =
-      orders
-      |> Enum.filter(fn ord ->
-        ord.open && ord.symbol == symbol && ord.direction == direction
-      end)
-      |> sort_direction(direction)
-
-    do_get_bid_ask_price(filtered_orders)
   end
 
   defp bid_ask_info(orders, symbol, direction) do

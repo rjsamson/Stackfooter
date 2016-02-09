@@ -4,7 +4,7 @@ defmodule Stackfooter.VenueControllerTest do
 
   @apikey "4cy7uf63Lw2Sx6652YmLwBKy662weU4q"
 
-  test "api heartbeat", %{conn: conn} do
+  test "api heartbeat" do
     {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
     Venue.reset(venue)
 

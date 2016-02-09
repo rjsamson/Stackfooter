@@ -1,6 +1,5 @@
 defmodule Stackfooter.Plugs.Api.AuthorizeAdmin do
   use Stackfooter.Web, :controller
-  alias Stackfooter.ApiKeyRegistry
 
   def init(options) do
     options

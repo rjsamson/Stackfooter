@@ -1,5 +1,5 @@
 defmodule Stackfooter.Bootstrap do
-  alias Stackfooter.{Venue, Venue.Ticker, VenueRegistry}
+  alias Stackfooter.{Venue.Ticker, VenueRegistry}
 
   def bootstrap do
     default_api_key = Application.get_env(:stackfooter, :bootstrap)[:default_api_key]

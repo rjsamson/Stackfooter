@@ -7,7 +7,12 @@ defmodule Stackfooter.Plugs.Api.Authenticate do
   end
 
   def call(conn, _) do
-    [token|_t] = get_req_header(conn, "x-starfighter-authorization")
+    token = case get_req_header(conn, "x-starfighter-authorization") do
+      [token|_t] ->
+        token
+      _ ->
+        nil
+    end
 
     case ApiKeyRegistry.lookup(ApiKeyRegistry, token) do
       {:ok, "ADMIN" = account} ->

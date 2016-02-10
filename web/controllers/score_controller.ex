@@ -14,16 +14,21 @@ defmodule Stackfooter.ScoreController do
                   name: Account.sanitize_account_name(account.name)}
     end)
 
-    conn |> json(accounts)
+    conn |> json(%{"ok" => true, "scores" => accounts})
   end
 
   def score(conn, %{"account" => account_name}) do
     stock_quotes = get_stock_quotes
-    {:ok, account} = SettlementDesk.lookup(SettlementDesk, account_name)
 
-    account = %{account | nav: Account.calculate_nav(account, stock_quotes),
-                          positions: Account.update_positions(account, stock_quotes)}
-    conn |> json(account)
+    if String.upcase(account_name) == conn.assigns[:account] do
+      {:ok, account} = SettlementDesk.lookup(SettlementDesk, account_name)
+
+      account = %{account | nav: Account.calculate_nav(account, stock_quotes),
+                            positions: Account.update_positions(account, stock_quotes)}
+      conn |> json(%{"ok" => true, "account" => account})
+    else
+      put_status(conn, 401) |> json(%{"ok" => false, "error" => "You don't have permission to access that account"})
+    end
   end
 
   defp get_stock_quotes do

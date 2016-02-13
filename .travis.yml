@@ -4,8 +4,7 @@ otp_release:
   - 18.1
 sudo: false
 before_script:
-  - cp config/dev.secret.example.exs config/dev.secret.exs
-  - mix local.hex --force
-  - mix deps.get
+  - MIX_ENV=test mix local.hex --force
+  - MIX_ENV=test mix deps.get
 script:
   - mix test

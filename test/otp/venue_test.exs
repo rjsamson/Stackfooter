@@ -86,6 +86,22 @@ defmodule Stackfooter.VenueTest do
       assert order_book["bids"] == dummy_order_book["bids"]
   end
 
+  test "venue resets properly", %{venue: venue} do
+    Enum.each(4200..4210, fn x ->
+      Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 7, price: x, account: "rjsamson", orderType: "limit"})
+    end)
+
+    Enum.each(4220..4230, fn x ->
+      Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 7, price: x, account: "rjsamson", orderType: "limit"})
+    end)
+
+    Venue.reset(venue)
+
+    {:ok, order_book} = Venue.order_book(venue, "NYC")
+
+    assert remove_timestamp(order_book) == %{"asks" => [], "bids" => [], "ok" => true, "symbol" => "NYC", "venue" => "OBEX"}
+  end
+
   test "quote bid / ask amounts are correct", %{venue: venue} do
     Enum.each(4200..4210, fn x ->
       Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 7, price: x, account: "rjsamson", orderType: "limit"})
@@ -102,5 +118,9 @@ defmodule Stackfooter.VenueTest do
     dummy_quote = %{"ask" => 4221, "askDepth" => 70, "askSize" => 7, "bid" => 4210, "bidDepth" => 77, "bidSize" => 7, "last" => 4220, "lastSize" => 7, "lastTrade" => stock_quote["lastTrade"], "quoteTime" => stock_quote["quoteTime"], "symbol" => "NYC", "venue" => "OBEX"}
 
     assert stock_quote == dummy_quote
+  end
+
+  defp remove_timestamp(result) do
+    Map.delete(result,"ts")
   end
 end

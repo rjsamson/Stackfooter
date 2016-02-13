@@ -4,6 +4,7 @@ otp_release:
   - 18.1
 sudo: false
 before_script:
+  - cp config/dev.secret.example.exs config/dev.secret.exs
   - mix local.hex --force
   - mix deps.get
 script:

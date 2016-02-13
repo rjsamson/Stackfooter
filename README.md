@@ -1,4 +1,5 @@
 # Stackfooter
+[![Build Status](https://travis-ci.org/rjsamson/Stackfooter.svg?branch=master)](https://travis-ci.org/rjsamson/Stackfooter)
 
 A [Stockfighter](https://www.stockfighter.io) clone built in Elixir using Phoenix.
 

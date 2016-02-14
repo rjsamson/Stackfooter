@@ -46,7 +46,8 @@ defmodule Stackfooter.VenueController do
           {:ok, order} ->
             order = Map.delete(order, :__struct__) |> Map.put(:ok, true)
             conn |> json(order)
-          {:error, msg} -> conn |> json(msg)
+          {:error, msg} ->
+            conn |> put_status(401) |> json(msg)
         end
       :error ->
         conn |> json(%{"ok" => false, "error" => "Invalid order id. Please supply an integer"})
@@ -71,7 +72,8 @@ defmodule Stackfooter.VenueController do
           {:ok, cancelled_order} ->
             cancelled_order = Map.delete(cancelled_order, :__struct__) |> Map.put(:ok, true)
             conn |> json(cancelled_order)
-          {:error, msg} -> conn |> json(msg)
+          {:error, msg} ->
+            conn |> put_status(401) |> json(msg)
         end
       :error ->
         conn |> json(%{"ok" => false, "error" => "Invalid order id. Please supply an integer"})

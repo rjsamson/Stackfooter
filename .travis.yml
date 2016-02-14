@@ -3,8 +3,12 @@ elixir: 1.2.0
 otp_release:
   - 18.1
 sudo: false
+env:
+  - MIX_ENV=test
 before_script:
   - MIX_ENV=test mix local.hex --force
   - MIX_ENV=test mix deps.get
 script:
   - mix test
+after_script:
+  - mix coveralls.travis

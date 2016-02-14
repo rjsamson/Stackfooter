@@ -4,6 +4,60 @@ defmodule Stackfooter.VenueControllerTest do
 
   @apikey "4cy7uf63Lw2Sx6652YmLwBKy662weU4q"
 
+  test "getting order info on unowned order returns correct error" do
+    {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
+    Venue.reset(venue)
+
+    Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "rjsamson", orderType: "market"})
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> get("ob/api/venues/obex/stocks/nyc/orders/0")
+    resp = json_response(conn, 401)
+
+    assert resp
+    refute resp["ok"]
+    assert resp["error"] == "Only account owner can access that order"
+  end
+
+  test "cancelling unowned order returns correct error" do
+    {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
+    Venue.reset(venue)
+
+    Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "rjsamson", orderType: "market"})
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> delete("ob/api/venues/obex/stocks/nyc/orders/0")
+    resp = json_response(conn, 401)
+
+    assert resp
+    refute resp["ok"]
+    assert resp["error"] == "Not authorized to delete that order.  You have to own account  RJSAMSON."
+  end
+
+  test "returns all orders" do
+    {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
+    Venue.reset(venue)
+
+    Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "admin", orderType: "market"})
+    Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 7, price: 500, account: "admin", orderType: "limit"})
+    Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 7, price: 550, account: "admin", orderType: "limit"})
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> get("ob/api/venues/obex/accounts/admin/orders")
+    resp = json_response(conn, 200)
+
+    expected_orders = [%{"account" => "ADMIN", "direction" => "sell", "fills" => [], "id" => 2, "open" => true, "orderType" => "limit", "originalQty" => 7,
+                         "price" => 550, "qty" => 7, "symbol" => "NYC", "totalFilled" => 0, "venue" => "OBEX"},
+                       %{"account" => "ADMIN", "direction" => "buy", "fills" => [], "id" => 1, "open" => true, "orderType" => "limit", "originalQty" => 7,
+                         "price" => 500, "qty" => 7, "symbol" => "NYC", "totalFilled" => 0, "venue" => "OBEX"},
+                       %{"account" => "ADMIN", "direction" => "sell", "fills" => [], "id" => 0, "open" => false, "orderType" => "market", "originalQty" => 5,
+                         "price" => 0, "qty" => 0, "symbol" => "NYC", "totalFilled" => 0, "venue" => "OBEX"}]
+
+    assert resp
+    assert resp["ok"]
+    assert strip_timestamps(resp["orders"]) == expected_orders
+  end
+
   test "api heartbeat" do
     {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
     Venue.reset(venue)
@@ -266,5 +320,11 @@ defmodule Stackfooter.VenueControllerTest do
     assert resp
     %{"ok" => resp_ok} = resp
     assert resp_ok
+  end
+
+  defp strip_timestamps(orders) when is_list(orders) do
+    Enum.map(orders, fn order ->
+      Map.delete(order,"ts")
+    end)
   end
 end

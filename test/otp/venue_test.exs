@@ -1,5 +1,5 @@
 defmodule Stackfooter.VenueTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
   alias Stackfooter.{Venue, VenueRegistry, Venue.Ticker}
 
   setup do

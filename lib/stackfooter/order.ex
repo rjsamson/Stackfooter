@@ -26,14 +26,6 @@ defmodule Stackfooter.Order do
     %{order | fills: updated_order_fills, totalFilled: updated_order_total_filled, open: updated_order_open, qty: updated_qty}
   end
 
-  def calculate_total_filled(order) do
-    filled = Enum.reduce(order.fills, 0, fn(fill, acc) ->
-      fill.qty + acc
-    end)
-
-    filled
-  end
-
   def order_map_with_ok(order) do
     Map.delete(order, :__struct__) |> Map.put(:ok, true)
   end

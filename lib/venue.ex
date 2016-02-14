@@ -151,7 +151,11 @@ defmodule Stackfooter.Venue do
           closed_orders
           |> Enum.find(fn order -> order.id == order_id end)
 
-        {:reply, {:ok, cancelled_order}, state}
+        if cancelled_order.account != account do
+          {:reply, {:error, %{"ok" => false, "error" => "Not authorized to delete that order.  You have to own account  #{cancelled_order.account}."}}, state}
+        else
+          {:reply, {:ok, cancelled_order}, state}
+        end
       order_to_cancel.account == account ->
         new_open_orders = open_orders |> Enum.reject(fn order -> order.id == order_id end)
         cancelled_order = %{order_to_cancel | open: false}

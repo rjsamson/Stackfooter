@@ -31,8 +31,6 @@ defmodule Stackfooter.Venue do
 
   def heartbeat(pid), do: GenServer.call(pid, :heartbeat)
 
-  def update_quote(pid, stock_quote, symbol), do: GenServer.cast(pid, {:update_quote, stock_quote, symbol})
-
   def reset(pid), do: GenServer.cast(pid, :reset_venue)
 
   def start_link(venue_name, tickers) do
@@ -252,10 +250,6 @@ defmodule Stackfooter.Venue do
       end)
 
     {:noreply, {0, new_last_executions, venue, tickers, [], [], %{}}}
-  end
-
-  def handle_cast({:update_quote, stock_quote, symbol}, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, stock_quotes}) do
-    {:noreply, {num_orders, last_executions, venue, tickers, closed_orders, open_orders, Map.put(stock_quotes, symbol, stock_quote)}}
   end
 
   # defp consolidate_entries(entries) do

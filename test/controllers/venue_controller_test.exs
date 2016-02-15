@@ -16,6 +16,48 @@ defmodule Stackfooter.VenueControllerTest do
     assert resp["venues"] == expected_venues
   end
 
+  test "returns correct error when trying to cancel invalid order numbers" do
+    {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
+    Venue.reset(venue)
+
+    Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "admin", orderType: "market"})
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> delete("/ob/api/venues/obex/stocks/nyc/orders/10")
+    resp = json_response(conn, 401)
+    assert resp
+    refute resp["ok"]
+    assert resp["error"] == "Highest order id is 1"
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> delete("/ob/api/venues/obex/stocks/nyc/orders/-1")
+    resp = json_response(conn, 401)
+    assert resp
+    refute resp["ok"]
+    assert resp["error"] == "Highest order id is 1"
+  end
+
+  test "returns correct error when trying to get status on invalid order numbers" do
+    {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
+    Venue.reset(venue)
+
+    Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "admin", orderType: "market"})
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> get("/ob/api/venues/obex/stocks/nyc/orders/10")
+    resp = json_response(conn, 401)
+    assert resp
+    refute resp["ok"]
+    assert resp["error"] == "Highest order id is 1"
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> get("/ob/api/venues/obex/stocks/nyc/orders/-1")
+    resp = json_response(conn, 401)
+    assert resp
+    refute resp["ok"]
+    assert resp["error"] == "Highest order id is 1"
+  end
+
   test "getting order info on unowned order returns correct error" do
     {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
     Venue.reset(venue)

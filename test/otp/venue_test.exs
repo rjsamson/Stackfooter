@@ -21,6 +21,21 @@ defmodule Stackfooter.VenueTest do
     assert tickers == [%Stackfooter.Venue.Ticker{name: "Foo Fighters International", symbol: "FOO"}, %Ticker{name: "New York Company", symbol: "NYC"}]
   end
 
+  test "various order types", %{venue: venue} do
+    Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 4, price: 100, account: "admin", orderType: "market"})
+    Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 4, price: 100, account: "admin", orderType: "fill-or-kill"})
+    Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 4, price: 100, account: "admin", orderType: "immediate-or-cancel"})
+    Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 4, price: 100, account: "admin", orderType: "limit"})
+    Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 2, price: 100, account: "admin", orderType: "fill-or-kill"})
+    Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 4, price: 100, account: "admin", orderType: "immediate-or-cancel"})
+
+    {:ok, order_book} = Venue.order_book(venue, "NYC")
+
+    assert order_book["bids"] == []
+    assert order_book["asks"] == []
+    assert order_book["ok"]
+  end
+
   test "can place orders", %{venue: venue} do
     {:ok, order} = Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 30, price: 5000, account: "rjsamson", orderType: "limit"})
 

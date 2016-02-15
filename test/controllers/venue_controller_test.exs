@@ -129,6 +129,7 @@ defmodule Stackfooter.VenueControllerTest do
     Venue.reset(venue)
 
     Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "rjsamson", orderType: "market"})
+    Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 100, account: "rjsamson", orderType: "limit"})
 
     conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
     |> delete("ob/api/venues/obex/stocks/nyc/orders/0")
@@ -137,6 +138,33 @@ defmodule Stackfooter.VenueControllerTest do
     assert resp
     refute resp["ok"]
     assert resp["error"] == "Not authorized to delete that order.  You have to own account  RJSAMSON."
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> delete("ob/api/venues/obex/stocks/nyc/orders/1")
+    resp = json_response(conn, 401)
+
+    assert resp
+    refute resp["ok"]
+    assert resp["error"] == "Not authorized to delete that order.  You have to own account  RJSAMSON."
+  end
+
+  test "returns the order when cancelling a closed order" do
+    {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
+    Venue.reset(venue)
+    Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "admin", orderType: "market"})
+
+    expected_order = %{"account" => "ADMIN", "direction" => "sell", "fills" => [], "id" => 0,
+                       "ok" => true, "open" => false, "orderType" => "market", "originalQty" => 5,
+                       "price" => 0, "qty" => 0, "symbol" => "NYC", "totalFilled" => 0,
+                       "venue" => "OBEX"}
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> delete("ob/api/venues/obex/stocks/nyc/orders/0")
+    resp = json_response(conn, 200)
+
+    assert resp
+    assert resp["ok"]
+    assert strip_timestamps(resp) == expected_order
   end
 
   test "returns all orders" do
@@ -199,6 +227,17 @@ defmodule Stackfooter.VenueControllerTest do
 
     conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
     |> put_req_header("content-type", "application/json")
+    |> post("/ob/api/venues/obex/stocks/nyc/orders", Poison.encode!(order))
+    resp = json_response(conn, 200)
+    assert resp
+    %{"ok" => resp_ok, "direction" => resp_direction, "fills" => resp_fills, "qty" => resp_qty} = resp
+    assert resp_ok
+    assert resp_direction == "sell"
+    assert resp_fills == []
+    assert resp_qty == 100
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> put_req_header("content-type", "")
     |> post("/ob/api/venues/obex/stocks/nyc/orders", Poison.encode!(order))
     resp = json_response(conn, 200)
     assert resp
@@ -429,7 +468,11 @@ defmodule Stackfooter.VenueControllerTest do
 
   defp strip_timestamps(orders) when is_list(orders) do
     Enum.map(orders, fn order ->
-      Map.delete(order,"ts")
+      strip_timestamps(order)
     end)
+  end
+
+  defp strip_timestamps(order) when is_map(order) do
+    Map.delete(order,"ts")
   end
 end

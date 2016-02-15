@@ -1,6 +1,6 @@
 defmodule Stackfooter.ScoreControllerTest do
   use Stackfooter.ConnCase
-  alias Stackfooter.{Venue, VenueRegistry, ApiKeyRegistry}
+  alias Stackfooter.{Venue, VenueRegistry, ApiKeyRegistry, SettlementDesk}
 
   @admin_apikey "4cy7uf63Lw2Sx6652YmLwBKy662weU4q"
   @non_admin_apikey "KVi7irGjY8ZhYg6B20QU7H6IIbhWmyt0"
@@ -10,6 +10,7 @@ defmodule Stackfooter.ScoreControllerTest do
 
     {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
     Venue.reset(venue)
+    SettlementDesk.reset_accounts(SettlementDesk)
 
     Enum.each(4200..4211, fn x ->
       Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 7, price: x, account: "admin", orderType: "limit"})

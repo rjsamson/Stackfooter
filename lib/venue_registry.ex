@@ -1,6 +1,9 @@
 defmodule Stackfooter.VenueRegistry do
-  alias Stackfooter.Venue
   use GenServer
+
+  defmodule VenueInfo do
+    defstruct name: "", description: "", venue: nil
+  end
 
   def start_link(name) do
     GenServer.start_link(__MODULE__, name, name: name)
@@ -10,7 +13,7 @@ defmodule Stackfooter.VenueRegistry do
     name = String.upcase(name)
 
     case :ets.lookup(pid, name) do
-      [{^name, venue}] -> {:ok, venue}
+      [{^name, venue}] -> {:ok, venue.venue}
       [] -> :error
     end
   end
@@ -20,6 +23,11 @@ defmodule Stackfooter.VenueRegistry do
   end
 
   def all_venues(pid) do
+    venues = :ets.select(pid, [{{:_, :"$1"}, [], [:"$1"]}])
+    Enum.map(venues, fn venue -> venue.venue end)
+  end
+
+  def all_venue_info(pid) do
     :ets.select(pid, [{{:_, :"$1"}, [], [:"$1"]}])
   end
 
@@ -41,7 +49,7 @@ defmodule Stackfooter.VenueRegistry do
       :error ->
         {:ok, pid} = Supervisor.start_child(Stackfooter.Venue.Supervisor, [name, tickers])
         name_atom = String.to_atom(name)
-        :ets.insert(venue_names, {name, name_atom})
+        :ets.insert(venue_names, {name, %VenueInfo{name: name, venue: name_atom}})
         {:reply, {:ok, name_atom}, venue_names}
     end
   end

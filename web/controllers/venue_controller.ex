@@ -18,8 +18,12 @@ defmodule Stackfooter.VenueController do
   end
 
   def venues(conn, _params) do
-    venues = VenueRegistry.all_venue_names(VenueRegistry)
-    conn |> json(venues)
+    venues = VenueRegistry.all_venue_info(VenueRegistry)
+    venues = for {venue, index} <- Enum.with_index(venues) do
+      %{id: index, name: venue.description, venueenue: venue.name, state: "open"}
+    end
+
+    conn |> json(%{id: true, venues: venues})
   end
 
   def stocks(conn, %{"venue" => _venue}) do

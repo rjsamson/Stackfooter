@@ -71,13 +71,7 @@ defmodule Stackfooter.SettlementDesk do
     quantity = fill.qty
     amount = price * quantity
 
-    buy_account =
-      case lookup(accounts, buy_account_name) do
-        {:ok, account} ->
-          account
-        _ ->
-          %Account{name: buy_account_name}
-      end
+    {:ok, buy_account} = lookup(accounts, buy_account_name)
 
     buy_position = position_for_stock(buy_account.positions, stock)
     remaining_buy_positions = buy_account.positions -- [buy_position]
@@ -90,13 +84,7 @@ defmodule Stackfooter.SettlementDesk do
 
     :ets.insert(accounts, {buy_account_name, buy_account})
 
-    sell_account =
-      case lookup(accounts, sell_account_name) do
-        {:ok, account} ->
-          account
-        _ ->
-          %Account{name: sell_account_name}
-      end
+    {:ok, sell_account} = lookup(accounts, sell_account_name)
 
     sell_position = position_for_stock(sell_account.positions, stock)
     remaining_sell_positions = sell_account.positions -- [sell_position]

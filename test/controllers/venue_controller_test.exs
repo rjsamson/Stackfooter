@@ -58,6 +58,57 @@ defmodule Stackfooter.VenueControllerTest do
     assert resp["error"] == "Highest order id is 1"
   end
 
+  test "returns correct errors when an integer is not supplied for order id in order status" do
+    {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
+    Venue.reset(venue)
+
+    Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "admin", orderType: "market"})
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> get("/ob/api/venues/obex/stocks/nyc/orders/a")
+    resp = json_response(conn, 200)
+    assert resp
+    refute resp["ok"]
+    assert resp["error"] == "Invalid order id. Please supply an integer"
+  end
+
+  test "returns correct errors when an integer is not supplied for order id in cancellation" do
+    {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
+    Venue.reset(venue)
+
+    Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "admin", orderType: "market"})
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> delete("/ob/api/venues/obex/stocks/nyc/orders/a")
+    resp = json_response(conn, 200)
+    assert resp
+    refute resp["ok"]
+    assert resp["error"] == "Invalid order id. Please supply an integer"
+  end
+
+  test "returns unauthorized when trying to access another account's all orders" do
+    {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
+    Venue.reset(venue)
+
+    Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "rjsamson", orderType: "market"})
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> get("/ob/api/venues/obex/accounts/rjsamson/orders")
+    resp = json_response(conn, 401)
+
+    assert resp
+    refute resp["ok"]
+    assert resp["error"] == "Not authorized to access details about that account's orders."
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> get("/ob/api/venues/obex/accounts/rjsamson/stocks/nyc/orders")
+    resp = json_response(conn, 401)
+
+    assert resp
+    refute resp["ok"]
+    assert resp["error"] == "Not authorized to access details about that account's orders."
+  end
+
   test "getting order info on unowned order returns correct error" do
     {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
     Venue.reset(venue)

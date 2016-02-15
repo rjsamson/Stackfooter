@@ -4,6 +4,18 @@ defmodule Stackfooter.VenueControllerTest do
 
   @apikey "4cy7uf63Lw2Sx6652YmLwBKy662weU4q"
 
+  test "returns all open venues" do
+    conn = get(conn(), "/ob/api/venues/")
+    resp = json_response(conn, 200)
+
+    expected_venues = [%{"id" => 0, "name" => "", "state" => "open", "venueenue" => "TESTEX"},
+                       %{"id" => 1, "name" => "", "state" => "open", "venueenue" => "OBEX"}]
+
+    assert resp
+    assert resp["id"]
+    assert resp["venues"] == expected_venues
+  end
+
   test "getting order info on unowned order returns correct error" do
     {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
     Venue.reset(venue)

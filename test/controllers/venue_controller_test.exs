@@ -274,7 +274,7 @@ defmodule Stackfooter.VenueControllerTest do
               "qty" => 100,
               "price" => 5000}
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(conn, "x-starfighter-authorization", @apikey)
     |> put_req_header("content-type", "application/json")
     |> post("/ob/api/venues/obex/stocks/nyc/orders", Poison.encode!(order))
 
@@ -331,6 +331,16 @@ defmodule Stackfooter.VenueControllerTest do
 
     conn = put_req_header(conn, "x-starfighter-authorization", @apikey)
     |> post("/ob/api/venues/obex/stocks/nyc/orders", order)
+    resp = json_response(conn, 200)
+    assert resp
+    %{"ok" => resp_ok, "direction" => resp_direction, "fills" => resp_fills, "qty" => resp_qty} = resp
+    assert resp_ok
+    assert resp_direction == "sell"
+    assert resp_fills == []
+    assert resp_qty == 100
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> post("/ob/api/venues/obex/stocks/nyc/orders", %{Poison.encode!(order) => "Nothing"})
     resp = json_response(conn, 200)
     assert resp
     %{"ok" => resp_ok, "direction" => resp_direction, "fills" => resp_fills, "qty" => resp_qty} = resp

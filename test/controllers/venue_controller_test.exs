@@ -249,6 +249,74 @@ defmodule Stackfooter.VenueControllerTest do
     assert resp["venue"] == "OBEX"
   end
 
+  test "sends proper error for non-existent venue" do
+    {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
+    Venue.reset(venue)
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> get("ob/api/venues/tryex/stocks/nyc/orders/2")
+    resp = json_response(conn, 404)
+
+    assert resp
+    refute resp["ok"]
+    assert resp["error"] == "No venue exists with the symbol TRYEX."
+  end
+
+  test "errors placing orders return the proper errors", %{conn: conn} do
+    {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
+    Venue.reset(venue)
+
+    order = %{"venue" => "TRYEX",
+              "stock" => "NYC",
+              "account" => "ADMIN",
+              "direction" => "sell",
+              "orderType" => "limit",
+              "qty" => 100,
+              "price" => 5000}
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> put_req_header("content-type", "application/json")
+    |> post("/ob/api/venues/obex/stocks/nyc/orders", Poison.encode!(order))
+
+    resp = json_response(conn, 200)
+    assert resp
+    refute resp["ok"]
+    assert resp["error"] == "Venue or stock did not match venue or stock provided in the URL."
+
+    order = %{"venue" => "OBEX",
+              "stock" => "NYC",
+              "account" => "ADMIN",
+              "direction" => "sell",
+              "orderType" => "limit",
+              "qty" => -100,
+              "price" => 5000}
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> put_req_header("content-type", "application/json")
+    |> post("/ob/api/venues/obex/stocks/nyc/orders", Poison.encode!(order))
+
+    resp = json_response(conn, 200)
+    assert resp
+    refute resp["ok"]
+    assert resp["error"] == "Please include a valid price and quantity."
+
+    order = %{"venue" => "OBEX",
+              "stock" => "NYC",
+              "account" => "ADMIN",
+              "direction" => "sell",
+              "qty" => -100,
+              "price" => 5000}
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> put_req_header("content-type", "application/json")
+    |> post("/ob/api/venues/obex/stocks/nyc/orders", Poison.encode!(order))
+
+    resp = json_response(conn, 200)
+    assert resp
+    refute resp["ok"]
+    assert resp["error"] == "You failed to include some required parameters for the order, or formatted the price or quantity incorrectly."
+  end
+
   test "place order with various content types", %{conn: conn} do
     {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
     Venue.reset(venue)
@@ -259,7 +327,7 @@ defmodule Stackfooter.VenueControllerTest do
               "direction" => "sell",
               "orderType" => "limit",
               "qty" => 100,
-              "price" => 5000}
+              "price" => "5000"}
 
     conn = put_req_header(conn, "x-starfighter-authorization", @apikey)
     |> post("/ob/api/venues/obex/stocks/nyc/orders", order)
@@ -284,6 +352,25 @@ defmodule Stackfooter.VenueControllerTest do
 
     conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
     |> put_req_header("content-type", "")
+    |> post("/ob/api/venues/obex/stocks/nyc/orders", Poison.encode!(order))
+    resp = json_response(conn, 200)
+    assert resp
+    %{"ok" => resp_ok, "direction" => resp_direction, "fills" => resp_fills, "qty" => resp_qty} = resp
+    assert resp_ok
+    assert resp_direction == "sell"
+    assert resp_fills == []
+    assert resp_qty == 100
+
+    order = %{"venue" => "OBEX",
+              "symbol" => "NYC",
+              "account" => "ADMIN",
+              "direction" => "sell",
+              "orderType" => "limit",
+              "qty" => 100,
+              "price" => 5000}
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> put_req_header("content-type", "application/json")
     |> post("/ob/api/venues/obex/stocks/nyc/orders", Poison.encode!(order))
     resp = json_response(conn, 200)
     assert resp

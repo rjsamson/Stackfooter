@@ -12,7 +12,7 @@ Stockfighter API. Scores are available in JSON format at stackfooter.rjsamson.or
 
 ## How do I use it?
 
-This project is in pretty much constant flux at the moment, so until there's a proper web interface
+Everything pretty much works at this point, but since there's still no proper web interface
 to spin up venues, add api keys and accounts, add tickers, etc, the easiest way to play around
 with Stackfooter is to do the following:
 

@@ -39,15 +39,15 @@ defmodule Stackfooter.VenueTest do
   test "can place orders", %{venue: venue} do
     {:ok, order} = Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 30, price: 5000, account: "rjsamson", orderType: "limit"})
 
-    dummy_order = %Stackfooter.Order{account: "RJSAMSON", direction: "sell", fills: [], id: 0, open: true, orderType: "limit", originalQty: 30, price: 5000, qty: 30, symbol: "NYC", totalFilled: 0, venue: "OBEX"}
+    expected_order = %Stackfooter.Order{account: "RJSAMSON", direction: "sell", fills: [], id: 0, open: true, orderType: "limit", originalQty: 30, price: 5000, qty: 30, symbol: "NYC", totalFilled: 0, venue: "OBEX"}
 
-    assert order.account == dummy_order.account
-    assert order.direction == dummy_order.direction
-    assert order.open == dummy_order.open
-    assert order.qty == dummy_order.qty
-    assert order.symbol == dummy_order.symbol
-    assert order.venue == dummy_order.venue
-    assert order.totalFilled == dummy_order.totalFilled
+    assert order.account == expected_order.account
+    assert order.direction == expected_order.direction
+    assert order.open == expected_order.open
+    assert order.qty == expected_order.qty
+    assert order.symbol == expected_order.symbol
+    assert order.venue == expected_order.venue
+    assert order.totalFilled == expected_order.totalFilled
   end
 
   test "orders fill when crossed", %{venue: venue} do
@@ -69,7 +69,7 @@ defmodule Stackfooter.VenueTest do
       Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 7, price: x, account: "rjsamson", orderType: "limit"})
     end)
 
-    dummy_order_book = %{"asks" => [%Stackfooter.Venue.OrderbookEntry{isBuy: false, price: 4220, qty: 7},
+    expected_order_book = %{"asks" => [%Stackfooter.Venue.OrderbookEntry{isBuy: false, price: 4220, qty: 7},
                               %Stackfooter.Venue.OrderbookEntry{isBuy: false, price: 4221, qty: 7},
                               %Stackfooter.Venue.OrderbookEntry{isBuy: false, price: 4222, qty: 7},
                               %Stackfooter.Venue.OrderbookEntry{isBuy: false, price: 4223, qty: 7},
@@ -97,8 +97,8 @@ defmodule Stackfooter.VenueTest do
 
       {:ok, order_book} = Venue.order_book(venue, "NYC")
 
-      assert order_book["asks"] == dummy_order_book["asks"]
-      assert order_book["bids"] == dummy_order_book["bids"]
+      assert order_book["asks"] == expected_order_book["asks"]
+      assert order_book["bids"] == expected_order_book["bids"]
   end
 
   test "venue resets properly", %{venue: venue} do
@@ -130,9 +130,9 @@ defmodule Stackfooter.VenueTest do
 
     {:ok, stock_quote} = Venue.get_quote(venue, "NYC")
 
-    dummy_quote = %{"ask" => 4221, "askDepth" => 70, "askSize" => 7, "bid" => 4210, "bidDepth" => 77, "bidSize" => 7, "last" => 4220, "lastSize" => 7, "lastTrade" => stock_quote["lastTrade"], "quoteTime" => stock_quote["quoteTime"], "symbol" => "NYC", "venue" => "OBEX"}
+    expected_quote = %{"ask" => 4221, "askDepth" => 70, "askSize" => 7, "bid" => 4210, "bidDepth" => 77, "bidSize" => 7, "last" => 4220, "lastSize" => 7, "lastTrade" => stock_quote["lastTrade"], "quoteTime" => stock_quote["quoteTime"], "symbol" => "NYC", "venue" => "OBEX"}
 
-    assert stock_quote == dummy_quote
+    assert stock_quote == expected_quote
   end
 
   defp remove_timestamp(result) do

@@ -148,6 +148,25 @@ defmodule Stackfooter.VenueControllerTest do
     assert resp["error"] == "Not authorized to delete that order.  You have to own account  RJSAMSON."
   end
 
+  test "cancels an order with a post request" do
+    {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
+    Venue.reset(venue)
+    Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "admin", orderType: "market"})
+
+    expected_order = %{"account" => "ADMIN", "direction" => "sell", "fills" => [], "id" => 0,
+                       "ok" => true, "open" => false, "orderType" => "market", "originalQty" => 5,
+                       "price" => 0, "qty" => 0, "symbol" => "NYC", "totalFilled" => 0,
+                       "venue" => "OBEX"}
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> post("ob/api/venues/obex/stocks/nyc/orders/0/cancel")
+    resp = json_response(conn, 200)
+
+    assert resp
+    assert resp["ok"]
+    assert strip_timestamps(resp) == expected_order
+  end
+
   test "returns the order when cancelling a closed order" do
     {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
     Venue.reset(venue)

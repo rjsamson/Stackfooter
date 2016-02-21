@@ -336,6 +336,21 @@ defmodule Stackfooter.VenueControllerTest do
     assert resp["error"] == "You failed to include some required parameters for the order, or formatted the price or quantity incorrectly."
   end
 
+  test "errors on malformed json" do
+    {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
+    Venue.reset(venue)
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> post("/ob/api/venues/obex/stocks/nyc/orders", %{"A.B.C:1.:{:{" => "Nothing"})
+    resp = json_response(conn, 200)
+    assert resp
+    %{"ok" => resp_ok, "direction" => resp_direction, "fills" => resp_fills, "qty" => resp_qty} = resp
+    assert resp_ok
+    assert resp_direction == "sell"
+    assert resp_fills == []
+    assert resp_qty == 100
+  end
+
   test "place order with various content types", %{conn: conn} do
     {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
     Venue.reset(venue)

@@ -177,7 +177,9 @@ defmodule Stackfooter.VenueController do
           {:ok, json} ->
             %{conn | body_params: json}
           {:error, _} ->
-            conn
+            put_status(conn, 500)
+            |> json(%{ok: false, error: "Invalid JSON."})
+            |> halt()
         end
       length(keys) == 1 ->
         case (keys |> List.first |> Poison.Parser.parse()) do

@@ -346,6 +346,14 @@ defmodule Stackfooter.VenueControllerTest do
     assert resp
     refute resp["ok"]
     assert resp["error"] == "Invalid JSON."
+
+    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    |> put_req_header("content-type", "")
+    |> post("/ob/api/venues/obex/stocks/nyc/orders", "A.B.C:1.:{:{")
+    resp = json_response(conn, 500)
+    assert resp
+    refute resp["ok"]
+    assert resp["error"] == "Invalid JSON."
   end
 
   test "place order with various content types", %{conn: conn} do

@@ -6,7 +6,16 @@ import Actions exposing (..)
 import Models exposing (..)
 
 type alias ViewModel =
-  { ticker : String }
+  { ticker : String
+  , venue : String
+  , bid : Int
+  , ask : Int
+  , price : Int
+  , bidSize : Int
+  , askSize : Int
+  , bidDepth : Int
+  , askDepth : Int
+  }
 
 view : Signal.Address Action -> ViewModel -> Html.Html
 view address model =
@@ -39,5 +48,32 @@ brandLink address model =
 
 tickerTable : Signal.Address Action -> ViewModel -> Html.Html
 tickerTable address model =
-  p
-    [][ text model.ticker ]
+  table
+    [ class "table table-bordered" ]
+    [ thead
+      []
+      [ tr
+        []
+        [ th [] [ text "Ticker" ]
+        , th [] [ text "Venue" ]
+        , th [] [ text "Bid" ]
+        , th [] [ text "Ask" ]
+        , th [] [ text "Last" ]
+        , th [] [ text "Bid Size/Depth" ]
+        , th [] [ text "Ask Size/Depth" ]
+        ]
+      ]
+    , tbody
+      []
+      [ tr
+        []
+        [ td [] [ text model.ticker ]
+        , td [] [ text model.venue ]
+        , td [] [ text (toString model.bid) ]
+        , td [] [ text (toString model.ask) ]
+        , td [] [ text (toString model.price) ]
+        , td [] [ text ((toString model.bidSize) ++ " / " ++ (toString model.bidDepth)) ]
+        , td [] [ text ((toString model.askSize) ++ " / " ++ (toString model.askDepth)) ]
+        ]
+      ]
+    ]

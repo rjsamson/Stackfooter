@@ -26,3 +26,6 @@ erl_crash.dump
 /config/test.secret.exs
 /priv/scripts/bootstrap.secret.exs
 .DS_Store
+
+web/elm/elm-stuff
+web/static/vendor/ticker.js

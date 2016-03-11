@@ -1,0 +1,7 @@
+<div id="elm-main"></div>
+<script type="text/javascript">
+  window.onload = function() {
+    var elmDiv = document.getElementById('elm-main')
+      , elmApp = Elm.embed(Elm.Ticker, elmDiv);
+  }
+</script>

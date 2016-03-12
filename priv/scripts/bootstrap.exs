@@ -5,6 +5,8 @@ Stackfooter.ApiKeyRegistry.add_key(Stackfooter.ApiKeyRegistry, "I1kaUrr1SN6HK6i8
 Stackfooter.ApiKeyRegistry.add_key(Stackfooter.ApiKeyRegistry, "SO68190NJ47of2p7he37tGY1sBKPI85F", "account21234")
 Stackfooter.ApiKeyRegistry.add_key(Stackfooter.ApiKeyRegistry, "7O4fvT212gU2p1gu7v6aM25oI1rfbimg", "account35678")
 
+Stackfooter.ApiKeyRegistry.add_key(Stackfooter.ApiKeyRegistry, "SO68190NJ47of2p7he37tGY1sBKPI85F", "NOISEBOTS1237")
+
 nyc_tickers = [%Ticker{name: "New York Company", symbol: "NYC"}]
 VenueRegistry.create(Stackfooter.VenueRegistry, "OBEX", nyc_tickers)
 foo_tickers = [%Ticker{name: "Foo Fighters International", symbol: "FOO"}]

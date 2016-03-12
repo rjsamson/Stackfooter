@@ -4,6 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (href, class)
 import Actions exposing (..)
 import Models exposing (..)
+import String
 
 type alias ViewModel =
   { ticker : String
@@ -69,11 +70,20 @@ tickerTable address model =
         []
         [ td [] [ text model.ticker ]
         , td [] [ text model.venue ]
-        , td [] [ text (toString model.bid) ]
-        , td [] [ text (toString model.ask) ]
-        , td [] [ text (toString model.price) ]
+        , td [] [ text (formatPrice model.bid) ]
+        , td [] [ text (formatPrice model.ask) ]
+        , td [] [ text (formatPrice model.price) ]
         , td [] [ text ((toString model.bidSize) ++ " / " ++ (toString model.bidDepth)) ]
         , td [] [ text ((toString model.askSize) ++ " / " ++ (toString model.askDepth)) ]
         ]
       ]
     ]
+
+formatPrice : Int -> String
+formatPrice price =
+  let
+    priceStr = toString price
+    cents = String.right 2 priceStr
+    dollars = String.slice 0 -2 priceStr
+  in
+    "$" ++ dollars ++ "." ++ cents

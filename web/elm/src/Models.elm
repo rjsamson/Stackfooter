@@ -1,26 +1,32 @@
 module Models (..) where
 
 type alias AppModel =
-  { ticker : String
+  { symbol : String
   , venue : String
   , bid : Int
   , ask : Int
-  , price : Int
+  , last : Int
   , bidSize : Int
   , askSize : Int
   , bidDepth : Int
   , askDepth : Int
+  , lastSize : Int
+  , lastTrade : String
+  , quoteTime : String
   }
 
 initialModel : AppModel
 initialModel =
-  { ticker = "NYC"
+  { symbol = "NYC"
   , venue = "OBEX"
   , bid = 4000
   , ask = 4100
-  , price = 4050
+  , last = 4050
   , bidSize = 10
   , askSize = 10
   , bidDepth = 100
   , askDepth = 100
+  , lastSize = 10
+  , lastTrade = ""
+  , quoteTime = ""
   }

@@ -12,7 +12,7 @@ update : Action -> AppModel -> ( AppModel, Effects Action )
 update action model =
   case action of
     UpdateTicker newTicker ->
-      ({ model | ticker = newTicker }, Effects.none)
+      (newTicker, Effects.none)
 
     _ ->
       (model, Effects.none)
@@ -25,11 +25,17 @@ app : StartApp.App AppModel
 app =
   StartApp.start
     { init = init
-    , inputs = []
+    , inputs = [tickertapeUpdate]
     , view = view
     , update = update
     }
 
+tickertapeUpdate : Signal Action
+tickertapeUpdate =
+  Signal.map UpdateTicker tickertape
+
 main : Signal.Signal Html
 main =
   app.html
+
+port tickertape : Signal AppModel

@@ -7,15 +7,18 @@ import Models exposing (..)
 import String
 
 type alias ViewModel =
-  { ticker : String
+  { symbol : String
   , venue : String
   , bid : Int
   , ask : Int
-  , price : Int
+  , last : Int
   , bidSize : Int
   , askSize : Int
   , bidDepth : Int
   , askDepth : Int
+  , lastSize : Int
+  , lastTrade : String
+  , quoteTime : String
   }
 
 view : Signal.Address Action -> ViewModel -> Html.Html
@@ -55,7 +58,7 @@ tickerTable address model =
       []
       [ tr
         []
-        [ th [] [ text "Ticker" ]
+        [ th [] [ text "Symbol" ]
         , th [] [ text "Venue" ]
         , th [] [ text "Bid" ]
         , th [] [ text "Ask" ]
@@ -68,11 +71,11 @@ tickerTable address model =
       []
       [ tr
         []
-        [ td [] [ text model.ticker ]
+        [ td [] [ text model.symbol ]
         , td [] [ text model.venue ]
         , td [] [ text (formatPrice model.bid) ]
         , td [] [ text (formatPrice model.ask) ]
-        , td [] [ text (formatPrice model.price) ]
+        , td [] [ text (formatPrice model.last) ]
         , td [] [ text ((toString model.bidSize) ++ " / " ++ (toString model.bidDepth)) ]
         , td [] [ text ((toString model.askSize) ++ " / " ++ (toString model.askDepth)) ]
         ]

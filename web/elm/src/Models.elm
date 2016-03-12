@@ -1,6 +1,6 @@
 module Models (..) where
 
-type alias AppModel =
+type alias Model =
   { symbol : String
   , venue : String
   , bid : Int
@@ -15,7 +15,7 @@ type alias AppModel =
   , quoteTime : String
   }
 
-initialModel : AppModel
+initialModel : Model
 initialModel =
   { symbol = "NYC"
   , venue = "OBEX"

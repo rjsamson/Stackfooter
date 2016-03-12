@@ -8,7 +8,7 @@ import Html exposing (Html)
 import Actions exposing (..)
 import Models exposing (..)
 
-update : Action -> AppModel -> ( AppModel, Effects Action )
+update : Action -> Model -> ( Model, Effects Action )
 update action model =
   case action of
     UpdateTicker newTicker ->
@@ -17,11 +17,11 @@ update action model =
     _ ->
       (model, Effects.none)
 
-init : ( AppModel, Effects action )
+init : ( Model, Effects action )
 init =
   ( initialModel, Effects.none )
 
-app : StartApp.App AppModel
+app : StartApp.App Model
 app =
   StartApp.start
     { init = init
@@ -38,4 +38,4 @@ main : Signal.Signal Html
 main =
   app.html
 
-port tickertape : Signal AppModel
+port tickertape : Signal Model

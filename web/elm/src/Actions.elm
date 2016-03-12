@@ -4,4 +4,4 @@ import Models exposing (..)
 
 type Action
   = NoOp
-  | UpdateTicker AppModel
+  | UpdateTicker Model

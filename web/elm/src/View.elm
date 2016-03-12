@@ -6,28 +6,13 @@ import Actions exposing (..)
 import Models exposing (..)
 import String
 
-type alias ViewModel =
-  { symbol : String
-  , venue : String
-  , bid : Int
-  , ask : Int
-  , last : Int
-  , bidSize : Int
-  , askSize : Int
-  , bidDepth : Int
-  , askDepth : Int
-  , lastSize : Int
-  , lastTrade : String
-  , quoteTime : String
-  }
-
-view : Signal.Address Action -> ViewModel -> Html.Html
+view : Signal.Address Action -> Model -> Html.Html
 view address model =
   div
     []
     [ page address model ]
 
-page : Signal.Address Action -> ViewModel -> Html.Html
+page : Signal.Address Action -> Model -> Html.Html
 page address model =
   div
     []
@@ -35,7 +20,7 @@ page address model =
     , tickerTable address model
     ]
 
-navbar : Signal.Address Action -> ViewModel -> Html.Html
+navbar : Signal.Address Action -> Model -> Html.Html
 navbar address model =
   nav
     [ class "navbar navbar-default" ]
@@ -45,12 +30,12 @@ navbar address model =
       ]
     ]
 
-brandLink : Signal.Address Action -> ViewModel -> Html.Html
+brandLink : Signal.Address Action -> Model -> Html.Html
 brandLink address model =
   a
     [ href "#", class "navbar-brand" ][ text "Stackfooter" ]
 
-tickerTable : Signal.Address Action -> ViewModel -> Html.Html
+tickerTable : Signal.Address Action -> Model -> Html.Html
 tickerTable address model =
   table
     [ class "table table-bordered" ]

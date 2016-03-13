@@ -8,8 +8,8 @@ defmodule Stackfooter.VenueControllerTest do
     conn = get(conn(), "/ob/api/venues/")
     resp = json_response(conn, 200)
 
-    expected_venues = [%{"id" => 0, "name" => "", "state" => "open", "venueenue" => "TESTEX"},
-                       %{"id" => 1, "name" => "", "state" => "open", "venueenue" => "OBEX"}]
+    expected_venues = [%{"id" => 0, "name" => "", "state" => "open", "venue" => "TESTEX"},
+                       %{"id" => 1, "name" => "", "state" => "open", "venue" => "OBEX"}]
 
     assert resp
     assert resp["id"]

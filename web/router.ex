@@ -19,6 +19,7 @@ defmodule Stackfooter.Router do
     pipe_through :browser # Use the default browser stack
 
     get "/", PageController, :index
+    get "/ticker", TickerController, :index
   end
 
   scope "/ob/api", Stackfooter do

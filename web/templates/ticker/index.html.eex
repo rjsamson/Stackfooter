@@ -21,7 +21,8 @@
     var elmDiv = document.getElementById('elm-main')
       , elmApp = Elm.embed(Elm.Ticker, elmDiv, initialState);
 
-    var url = "ws://localhost:4000/ob/api/ws/rjsamson/venues/OBEX/tickertape/stocks/NYC"
+    var host = window.location.host
+    var url = "ws://" + host + "/ob/api/ws/rjsamson/venues/OBEX/tickertape/stocks/NYC"
 
     var tickerSocket = new WebSocket(url)
 

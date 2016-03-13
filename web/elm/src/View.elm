@@ -71,7 +71,7 @@ formatPrice : Int -> String
 formatPrice price =
   let
     priceStr = toString price
-    cents = String.right 2 priceStr
-    dollars = String.slice 0 -2 priceStr
+    cents = if price < 10 then "0" ++  (String.right 2 priceStr) else String.right 2 priceStr
+    dollars =  if price < 100 then "0" else String.slice 0 -2 priceStr
   in
     "$" ++ dollars ++ "." ++ cents

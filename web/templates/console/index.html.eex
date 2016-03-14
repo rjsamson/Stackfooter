@@ -1,0 +1,11 @@
+<div id="elm-main"></div>
+<script type="text/javascript">
+  window.onload = function() {
+    var initialState = {
+      apiKey: "<%= @api_key %>"
+    }
+
+    var elmDiv = document.getElementById('elm-main')
+      , elmApp = Elm.embed(Elm.Console, elmDiv, initialState);
+  }
+</script>

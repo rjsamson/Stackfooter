@@ -20,6 +20,7 @@ defmodule Stackfooter.Router do
 
     get "/", PageController, :index
     get "/ticker", TickerController, :index
+    get "/console", ConsoleController, :index
   end
 
   scope "/ob/api", Stackfooter do

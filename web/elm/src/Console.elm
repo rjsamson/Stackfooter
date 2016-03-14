@@ -1,18 +1,36 @@
-module Ticker (..) where
+module Console (..) where
 
 import StartApp
 import Effects exposing (Effects)
 import Task
-import Ticker.View exposing (..)
 import Html exposing (Html)
-import Ticker.Actions exposing (..)
-import Ticker.Models exposing (..)
+
+type Action
+  = NoOp
+  | UpdateTicker String
+
+type alias Model =
+  { symbol : String
+  , key : String
+  }
+
+initialModel : Model
+initialModel =
+  { symbol = "NYC"
+  , key = apiKey
+  }
+
+view : Signal.Address Action -> Model -> Html.Html
+view address model =
+  Html.div
+    []
+    [ Html.text ("API Key: " ++ model.key) ]
 
 update : Action -> Model -> ( Model, Effects Action )
 update action model =
   case action of
     UpdateTicker newTicker ->
-      (newTicker, Effects.none)
+      ({ model | symbol = newTicker }, Effects.none)
 
     _ ->
       (model, Effects.none)
@@ -25,17 +43,13 @@ app : StartApp.App Model
 app =
   StartApp.start
     { init = init
-    , inputs = [tickertapeUpdate]
+    , inputs = []
     , view = view
     , update = update
     }
-
-tickertapeUpdate : Signal Action
-tickertapeUpdate =
-  Signal.map UpdateTicker tickertape
 
 main : Signal.Signal Html
 main =
   app.html
 
-port tickertape : Signal Model
+port apiKey : String

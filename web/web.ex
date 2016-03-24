@@ -36,6 +36,7 @@ defmodule Stackfooter.Web do
 
       import Stackfooter.Router.Helpers
       import Stackfooter.Gettext
+      import Stackfooter.UserAuth, only: [authenticate_user: 2]
     end
   end
 

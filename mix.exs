@@ -21,7 +21,7 @@ defmodule Stackfooter.Mixfile do
   def application do
     [mod: {Stackfooter, []},
      applications: [:phoenix, :phoenix_html, :cowboy, :logger, :gettext,
-                    :phoenix_ecto, :postgrex, :tzdata, :beaker]]
+                    :phoenix_ecto, :postgrex, :tzdata, :beaker, :comeonin]]
   end
 
   # Specifies which paths to compile per environment.
@@ -41,7 +41,8 @@ defmodule Stackfooter.Mixfile do
      {:cowboy, "~> 1.0"},
      {:timex, "~> 1.0.0"},
      {:beaker, ">= 1.2.0"},
-     {:excoveralls, "~> 0.4", only: :test}]
+     {:excoveralls, "~> 0.4", only: :test},
+     {:comeonin, "~> 2.0"}]
   end
 
   # Aliases are shortcut or tasks specific to the current project.

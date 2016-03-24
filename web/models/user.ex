@@ -10,7 +10,7 @@ defmodule Stackfooter.User do
     timestamps
   end
 
-  @required_fields ~w(username password_hash api_keys)
+  @required_fields ~w(username password api_keys)
   @optional_fields ~w()
 
   @doc """

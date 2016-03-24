@@ -3,7 +3,7 @@ defmodule Stackfooter.UserTest do
 
   alias Stackfooter.User
 
-  @valid_attrs %{api_keys: ["some content"], password_hash: "some content", username: "some content"}
+  @valid_attrs %{api_keys: ["some content"], password: "some content", username: "some content"}
   @invalid_attrs %{}
 
   test "changeset with valid attributes" do

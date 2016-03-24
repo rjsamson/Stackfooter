@@ -1,11 +1,16 @@
 language: elixir
-elixir: 1.2.0
+elixir: 1.2.2
 otp_release:
-  - 18.1
+  - 18.2.1
 sudo: false
 env:
   - MIX_ENV=test
+addons:
+  postgresql: '9.4'
+services:
+  - postgresql
 before_script:
+  - MIX_ENV=test mix do ecto.create, ecto.migrate
   - MIX_ENV=test mix local.hex --force
   - MIX_ENV=test mix deps.get
 script:

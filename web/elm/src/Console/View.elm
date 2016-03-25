@@ -16,24 +16,7 @@ page : Signal.Address Action -> Model -> Html.Html
 page address model =
   div
     []
-    [ navbar address model
-    , tickerTable address model
-    ]
-
-navbar : Signal.Address Action -> Model -> Html.Html
-navbar address model =
-  nav
-    [ class "navbar navbar-default" ]
-    [ div [ class "container-fluid" ]
-      [ div [ class "navbar-header" ]
-        [ brandLink address model ]
-      ]
-    ]
-
-brandLink : Signal.Address Action -> Model -> Html.Html
-brandLink address model =
-  a
-    [ href "#", class "navbar-brand" ][ text "Stackfooter" ]
+    [ tickerTable address model ]
 
 tickerTable : Signal.Address Action -> Model -> Html.Html
 tickerTable address model =

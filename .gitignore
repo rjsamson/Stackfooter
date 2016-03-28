@@ -29,3 +29,4 @@ erl_crash.dump
 
 web/elm/elm-stuff
 web/static/vendor/ticker.js
+web/static/vendor/console.js

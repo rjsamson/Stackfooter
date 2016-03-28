@@ -1,0 +1,57 @@
+<div id="elm-main"></div>
+<script type="text/javascript">
+  window.onload = function() {
+    var initialState = {
+      tickertape: {
+        "symbol": "NYC",
+        "venue": "OBEX",
+        "bid": 5100,
+        "ask": 5125,
+        "bidSize": 392,
+        "askSize": 711,
+        "bidDepth": 2748,
+        "askDepth": 2237,
+        "last": 5125,
+        "lastSize": 52,
+        "lastTrade": "2015-07-13T05:38:17.33640392Z",
+        "quoteTime": "2015-07-13T05:38:17.33640392Z"
+      },
+      apiKey: "<%= @api_key %>"
+    }
+
+    var elmDiv = document.getElementById('elm-main')
+      , elmApp = Elm.embed(Elm.Console, elmDiv, initialState);
+
+    var host = window.location.host
+    var url = "ws://" + host + "/ob/api/ws/rjsamson/venues/OBEX/tickertape/stocks/NYC"
+
+    var tickerSocket = new WebSocket(url)
+
+    tickerSocket.onopen = function (event) {
+      console.log("Ticker WS open")
+    };
+
+    tickerSocket.onerror = function (event) {
+      console.log("Ticker WS error")
+      console.log(event)
+    };
+
+    tickerSocket.onmessage = function (event) {
+      var ticker = JSON.parse(event.data)
+
+      if (ticker.quote != undefined) {
+        if (ticker.quote.bid == undefined) {
+          ticker.quote.bid = 0
+        }
+        if (ticker.quote.ask == undefined) {
+          ticker.quote.ask = 0
+        }
+        if (ticker.quote.last == undefined) {
+          ticker.quote.last = 0
+        }
+
+        elmApp.ports.tickertape.send(ticker.quote)
+      }
+    }
+  }
+</script>

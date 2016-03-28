@@ -1,9 +1,9 @@
-module View (..) where
+module Ticker.View (..) where
 
 import Html exposing (..)
 import Html.Attributes exposing (href, class)
-import Actions exposing (..)
-import Models exposing (..)
+import Ticker.Actions exposing (..)
+import Ticker.Models exposing (..)
 import String
 
 view : Signal.Address Action -> Model -> Html.Html

@@ -13,6 +13,27 @@
 
   <body>
     <div class="container" role="main">
+      <nav class="navbar navbar-default">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <a href="#" class="navbar-brand">Stackfooter</a>
+          </div>
+          <div>
+            <ol class="breadcrumb navbar-right">
+            <%= if @current_user do %>
+              <li><%= @current_user.username %></li>
+              <li>
+                <%= link "Log out", to: session_path(@conn, :delete, @current_user), method: "delete" %>
+              </li>
+            <% else %>
+              <li>
+                <%= link "Log in", to: session_path(@conn, :new) %>
+              </li>
+            <% end %>
+            </ol>
+          </div>
+        </div>
+      </nav>
       <%= render @view_module, @view_template, assigns %>
     </div> <!-- /container -->
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>

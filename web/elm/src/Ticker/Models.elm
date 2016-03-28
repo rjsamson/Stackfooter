@@ -1,4 +1,4 @@
-module Models (..) where
+module Ticker.Models (..) where
 
 type alias Model =
   { symbol : String

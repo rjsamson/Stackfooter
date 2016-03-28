@@ -1,12 +1,11 @@
-module Ticker (..) where
+module Console (..) where
 
 import StartApp
 import Effects exposing (Effects)
-import Task
-import Ticker.View exposing (..)
+import Console.View exposing (..)
 import Html exposing (Html)
-import Ticker.Actions exposing (..)
-import Ticker.Models exposing (..)
+import Console.Actions exposing (..)
+import Console.Models exposing (..)
 
 update : Action -> Model -> ( Model, Effects Action )
 update action model =
@@ -39,3 +38,5 @@ main =
   app.html
 
 port tickertape : Signal Model
+
+port apiKey : String

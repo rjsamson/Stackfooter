@@ -56,6 +56,7 @@ exports.config = {
       outputFolder: '../static/vendor'
     },
     babel: {
+      presets: ["es2015", "react", "stage-2", "stage-0"],
       // Do not use ES6 compiler in vendor code
       ignore: [/web\/static\/vendor/]
     }
@@ -71,6 +72,6 @@ exports.config = {
     enabled: true,
     // Whitelist the npm deps to be pulled in as front-end assets.
     // All other deps in package.json will be excluded from the bundle.
-    whitelist: ["phoenix", "phoenix_html"]
+    whitelist: ["phoenix", "phoenix_html", "react", "react-dom", "redux", "react-router", "react-router-redux", "react-redux"]
   }
 };

@@ -48,9 +48,12 @@ defmodule Stackfooter.UserAuth do
   end
 
   def login(conn, user) do
+    api_key = List.first(user.api_keys)
+
     conn
     |> assign(:current_user, user)
     |> put_session(:user_id, user.id)
+    |> put_session(:api_key, api_key)
     |> configure_session(renew: true)
   end
 

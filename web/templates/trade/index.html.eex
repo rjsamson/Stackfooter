@@ -1,0 +1,9 @@
+<script type="text/javascript">
+  window.username = "<%= @username %>"
+  window.venues = []
+  <%= for venue <- @venues do %>
+    window.venues.push("<%= venue %>")
+  <% end %>
+</script>
+
+<div id="main_container"></div>

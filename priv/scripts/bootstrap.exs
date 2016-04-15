@@ -11,3 +11,5 @@ nyc_tickers = [%Ticker{name: "New York Company", symbol: "NYC"}]
 VenueRegistry.create(Stackfooter.VenueRegistry, "OBEX", nyc_tickers)
 foo_tickers = [%Ticker{name: "Foo Fighters International", symbol: "FOO"}]
 VenueRegistry.create(Stackfooter.VenueRegistry, "TESTEX", foo_tickers)
+
+Venue.add_ticker(:OBEX, %Ticker{name: "Other Company Corp", symbol: "OCC"})

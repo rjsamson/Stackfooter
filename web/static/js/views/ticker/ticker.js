@@ -12,6 +12,8 @@ export default class Ticker extends React.Component {
         venue: "OBEX",
         bid: 1234,
         ask: 2345,
+        last: 1256,
+        lastSize: 10,
         bidSize: 10,
         bidDepth: 100,
         askSize: 10,

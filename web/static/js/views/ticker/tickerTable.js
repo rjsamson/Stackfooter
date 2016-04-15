@@ -12,6 +12,8 @@ export default class TickerTable extends React.Component {
             <th>Venue</th>
             <th>Bid</th>
             <th>Bid Size/Depth</th>
+            <th>Last</th>
+            <th>Last Size</th>
             <th>Ask</th>
             <th>Ask Size/Depth</th>
             <th>Last Trade</th>
@@ -23,6 +25,8 @@ export default class TickerTable extends React.Component {
             <td>{quote.venue}</td>
             <td>{quote.bid || 0}</td>
             <td>{quote.bidSize || 0} / {quote.bidDepth || 0}</td>
+            <td>{quote.last || 0}</td>
+            <td>{quote.lastSize || 0}</td>
             <td>{quote.ask || 0}</td>
             <td>{quote.askSize || 0} / {quote.askDepth || 0}</td>
             <td>{quote.lastTrade}</td>

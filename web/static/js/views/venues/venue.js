@@ -2,6 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import Ticker from '../ticker/ticker';
 import Actions from '../../actions/venues';
+import OrderForm from '../../components/orderform'
 
 class Venue extends React.Component {
   render() {
@@ -25,6 +26,7 @@ class Venue extends React.Component {
               <Ticker venue={venueName} stock={stock.symbol} />
             </div>
           })}
+          <OrderForm venue={venueName} stocks={stocks} />
         </div>
       );
     } else {

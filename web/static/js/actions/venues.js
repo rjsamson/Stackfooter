@@ -1,8 +1,36 @@
-import { httpGet } from '../utils';
+import { httpGet, httpPost } from '../utils';
 
 const Actions = {
+  placeOrder: (orderInfo) => {
+    console.log(orderInfo);
+    const order = {
+      account: orderInfo.username,
+      venue: orderInfo.venue,
+      stock: orderInfo.symbol,
+      price: orderInfo.price,
+      qty: orderInfo.qty,
+      direction: orderInfo.direction,
+      orderType: orderInfo.orderType
+    };
+
+    const url = `/ob/api/venues/${order.venue}/stocks/${order.stock}/orders`
+
+    return dispatch => {
+      dispatch({type: 'PLACING_ORDER'});
+
+      httpPost(url, order)
+      .then((data) => {
+        console.log(data);
+        dispatch({
+          type: 'ORDER_PLACED',
+          order: data,
+          venue: order.venue
+        });
+      });
+    }
+  },
+
   fetchVenues: () => {
-    var that = this;
     return dispatch => {
       dispatch({type: 'VENUES_FETCHING'});
 
@@ -19,7 +47,7 @@ const Actions = {
 
         venues.forEach(function(venue) {
           dispatch(Actions.fetchStocksOnVenue(venue.venue));
-        })
+        });
       });
     };
   },

@@ -1,5 +1,3 @@
-import Actions from '../actions/venues';
-
 const initialState = {
   venues: [],
   fetching: false

@@ -12,7 +12,7 @@
   </head>
 
   <body>
-    <div class="container" role="main">
+    <div class="container-fluid" role="main">
       <nav class="navbar navbar-default">
         <div class="container-fluid">
           <div class="navbar-header">

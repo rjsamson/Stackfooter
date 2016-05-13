@@ -12,6 +12,7 @@ defmodule Stackfooter.Router do
 
   pipeline :api do
     # plug :accepts, ["json"]
+    plug :fetch_session
   end
 
   forward "/beaker", Beaker.Web
@@ -23,6 +24,7 @@ defmodule Stackfooter.Router do
     resources "/sessions", SessionController, only: [:new, :create, :delete]
     get "/ticker", TickerController, :index
     get "/console", ConsoleController, :index
+    get "/trade*path", TradeController, :index
   end
 
   scope "/ob/api", Stackfooter do

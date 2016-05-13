@@ -1,6 +1,7 @@
 defmodule Stackfooter.Plugs.Api.Authenticate do
   use Stackfooter.Web, :controller
   alias Stackfooter.ApiKeyRegistry
+  alias Stackfooter.Repo
 
   def init(options) do
     options
@@ -11,7 +12,11 @@ defmodule Stackfooter.Plugs.Api.Authenticate do
       [token|_t] ->
         token
       _ ->
-        nil
+        if api_key = get_session(conn, :api_key) do
+          api_key
+        else
+          nil
+        end
     end
 
     case ApiKeyRegistry.lookup(ApiKeyRegistry, token) do

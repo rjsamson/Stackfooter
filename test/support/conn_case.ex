@@ -37,6 +37,6 @@ defmodule Stackfooter.ConnCase do
     #   Ecto.Adapters.SQL.restart_test_transaction(Stackfooter.Repo, [])
     # end
 
-    {:ok, conn: Phoenix.ConnTest.conn()}
+    {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 end

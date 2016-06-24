@@ -10,9 +10,12 @@ addons:
 services:
   - postgresql
 before_script:
+  - cp config/travis.exs config/test.exs
   - MIX_ENV=test mix do ecto.create, ecto.migrate
   - MIX_ENV=test mix local.hex --force
   - MIX_ENV=test mix deps.get
+  - MIX_ENV=test mix ecto.create
+  - MIX_ENV=test mix ecto.migrate
 script:
   - mix test
 after_script:

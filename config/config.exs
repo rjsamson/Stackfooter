@@ -22,6 +22,8 @@ config :stackfooter, Stackfooter.Endpoint,
            {:_, Plug.Adapters.Cowboy.Handler, {Stackfooter.Endpoint, []}}
            ]}]]
 
+config :stackfooter, ecto_repos: [Stackfooter.Repo]
+
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",

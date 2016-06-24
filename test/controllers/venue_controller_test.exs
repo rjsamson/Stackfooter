@@ -5,7 +5,7 @@ defmodule Stackfooter.VenueControllerTest do
   @apikey "4cy7uf63Lw2Sx6652YmLwBKy662weU4q"
 
   test "returns all open venues" do
-    conn = get(conn(), "/ob/api/venues/")
+    conn = get(build_conn(), "/ob/api/venues/")
     resp = json_response(conn, 200)
 
     expected_venues = [%{"id" => 0, "name" => "", "state" => "open", "venue" => "TESTEX"},
@@ -22,14 +22,14 @@ defmodule Stackfooter.VenueControllerTest do
 
     Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "admin", orderType: "market"})
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> delete("/ob/api/venues/obex/stocks/nyc/orders/10")
     resp = json_response(conn, 401)
     assert resp
     refute resp["ok"]
     assert resp["error"] == "Highest order id is 1"
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> delete("/ob/api/venues/obex/stocks/nyc/orders/-1")
     resp = json_response(conn, 401)
     assert resp
@@ -43,14 +43,14 @@ defmodule Stackfooter.VenueControllerTest do
 
     Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "admin", orderType: "market"})
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> get("/ob/api/venues/obex/stocks/nyc/orders/10")
     resp = json_response(conn, 401)
     assert resp
     refute resp["ok"]
     assert resp["error"] == "Highest order id is 1"
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> get("/ob/api/venues/obex/stocks/nyc/orders/-1")
     resp = json_response(conn, 401)
     assert resp
@@ -64,7 +64,7 @@ defmodule Stackfooter.VenueControllerTest do
 
     Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "admin", orderType: "market"})
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> get("/ob/api/venues/obex/stocks/nyc/orders/a")
     resp = json_response(conn, 200)
     assert resp
@@ -78,7 +78,7 @@ defmodule Stackfooter.VenueControllerTest do
 
     Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "admin", orderType: "market"})
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> delete("/ob/api/venues/obex/stocks/nyc/orders/a")
     resp = json_response(conn, 200)
     assert resp
@@ -92,7 +92,7 @@ defmodule Stackfooter.VenueControllerTest do
 
     Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "rjsamson", orderType: "market"})
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> get("/ob/api/venues/obex/accounts/rjsamson/orders")
     resp = json_response(conn, 401)
 
@@ -100,7 +100,7 @@ defmodule Stackfooter.VenueControllerTest do
     refute resp["ok"]
     assert resp["error"] == "Not authorized to access details about that account's orders."
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> get("/ob/api/venues/obex/accounts/rjsamson/stocks/nyc/orders")
     resp = json_response(conn, 401)
 
@@ -115,7 +115,7 @@ defmodule Stackfooter.VenueControllerTest do
 
     Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "rjsamson", orderType: "market"})
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> get("ob/api/venues/obex/stocks/nyc/orders/0")
     resp = json_response(conn, 401)
 
@@ -131,7 +131,7 @@ defmodule Stackfooter.VenueControllerTest do
     Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 0, account: "rjsamson", orderType: "market"})
     Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 5, price: 100, account: "rjsamson", orderType: "limit"})
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> delete("ob/api/venues/obex/stocks/nyc/orders/0")
     resp = json_response(conn, 401)
 
@@ -139,7 +139,7 @@ defmodule Stackfooter.VenueControllerTest do
     refute resp["ok"]
     assert resp["error"] == "Not authorized to delete that order.  You have to own account  RJSAMSON."
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> delete("ob/api/venues/obex/stocks/nyc/orders/1")
     resp = json_response(conn, 401)
 
@@ -158,7 +158,7 @@ defmodule Stackfooter.VenueControllerTest do
                        "price" => 0, "qty" => 0, "symbol" => "NYC", "totalFilled" => 0,
                        "venue" => "OBEX"}
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> post("ob/api/venues/obex/stocks/nyc/orders/0/cancel")
     resp = json_response(conn, 200)
 
@@ -177,7 +177,7 @@ defmodule Stackfooter.VenueControllerTest do
                        "price" => 0, "qty" => 0, "symbol" => "NYC", "totalFilled" => 0,
                        "venue" => "OBEX"}
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> delete("ob/api/venues/obex/stocks/nyc/orders/0")
     resp = json_response(conn, 200)
 
@@ -199,7 +199,7 @@ defmodule Stackfooter.VenueControllerTest do
                        "originalQty" => 10, "price" => 0, "qty" => 0, "symbol" => "NYC",
                        "totalFilled" => 10, "venue" => "OBEX"}
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> get("ob/api/venues/obex/stocks/nyc/orders/2")
     resp = json_response(conn, 200)
 
@@ -216,7 +216,7 @@ defmodule Stackfooter.VenueControllerTest do
     Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 7, price: 500, account: "admin", orderType: "limit"})
     Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 7, price: 550, account: "admin", orderType: "limit"})
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> get("ob/api/venues/obex/accounts/admin/orders")
     resp = json_response(conn, 200)
 
@@ -240,7 +240,7 @@ defmodule Stackfooter.VenueControllerTest do
     Venue.place_order(venue, %{direction: "buy", symbol: "NYC", qty: 7, price: 500, account: "admin", orderType: "limit"})
     Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 7, price: 550, account: "admin", orderType: "limit"})
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> get("ob/api/venues/obex/accounts/admin/stocks/nyc/orders")
     resp = json_response(conn, 200)
 
@@ -260,7 +260,7 @@ defmodule Stackfooter.VenueControllerTest do
     {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
     Venue.reset(venue)
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> get("/ob/api/venues/obex/heartbeat")
     resp = json_response(conn, 200)
     assert resp
@@ -272,7 +272,7 @@ defmodule Stackfooter.VenueControllerTest do
     {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
     Venue.reset(venue)
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> get("ob/api/venues/tryex/stocks/nyc/orders/2")
     resp = json_response(conn, 404)
 
@@ -310,7 +310,7 @@ defmodule Stackfooter.VenueControllerTest do
               "qty" => -100,
               "price" => 5000}
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> put_req_header("content-type", "application/json")
     |> post("/ob/api/venues/obex/stocks/nyc/orders", Poison.encode!(order))
 
@@ -326,7 +326,7 @@ defmodule Stackfooter.VenueControllerTest do
               "qty" => -100,
               "price" => 5000}
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> put_req_header("content-type", "application/json")
     |> post("/ob/api/venues/obex/stocks/nyc/orders", Poison.encode!(order))
 
@@ -340,14 +340,14 @@ defmodule Stackfooter.VenueControllerTest do
     {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")
     Venue.reset(venue)
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> post("/ob/api/venues/obex/stocks/nyc/orders", %{"A.B.C:1.:{:{" => "Nothing"})
     resp = json_response(conn, 500)
     assert resp
     refute resp["ok"]
     assert resp["error"] == "Invalid JSON."
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> put_req_header("content-type", "")
     |> post("/ob/api/venues/obex/stocks/nyc/orders", "A.B.C:1.:{:{")
     resp = json_response(conn, 500)
@@ -378,7 +378,7 @@ defmodule Stackfooter.VenueControllerTest do
     assert resp_fills == []
     assert resp_qty == 100
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> post("/ob/api/venues/obex/stocks/nyc/orders", %{Poison.encode!(order) => "Nothing"})
     resp = json_response(conn, 200)
     assert resp
@@ -388,7 +388,7 @@ defmodule Stackfooter.VenueControllerTest do
     assert resp_fills == []
     assert resp_qty == 100
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> put_req_header("content-type", "application/json")
     |> post("/ob/api/venues/obex/stocks/nyc/orders", Poison.encode!(order))
     resp = json_response(conn, 200)
@@ -399,7 +399,7 @@ defmodule Stackfooter.VenueControllerTest do
     assert resp_fills == []
     assert resp_qty == 100
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> put_req_header("content-type", "")
     |> post("/ob/api/venues/obex/stocks/nyc/orders", Poison.encode!(order))
     resp = json_response(conn, 200)
@@ -418,7 +418,7 @@ defmodule Stackfooter.VenueControllerTest do
               "qty" => 100,
               "price" => 5000}
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> put_req_header("content-type", "application/json")
     |> post("/ob/api/venues/obex/stocks/nyc/orders", Poison.encode!(order))
     resp = json_response(conn, 200)
@@ -464,7 +464,7 @@ defmodule Stackfooter.VenueControllerTest do
       "symbol" => "NYC",
       "venue" => "OBEX"}
 
-      conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+      conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
       |> get("/ob/api/venues/obex/stocks/nyc")
       resp = json_response(conn, 200)
       %{"ok" => resp_ok, "asks" => resp_asks, "bids" => resp_bids} = resp
@@ -501,7 +501,7 @@ defmodule Stackfooter.VenueControllerTest do
     "symbol" => "NYC",
     "venue" => "OBEX"}
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> get("/ob/api/venues/obex/stocks/nyc/quote")
     resp = json_response(conn, 200)
 
@@ -531,7 +531,7 @@ defmodule Stackfooter.VenueControllerTest do
     "totalFilled" => 5,
     "venue" => "OBEX"}
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> delete("/ob/api/venues/obex/stocks/nyc/orders/10")
     resp = json_response(conn, 200)
     %{"ok" => resp_ok, "id" => resp_id, "open" => resp_open, "qty" => resp_qty, "originalQty" => resp_original_qty} = resp
@@ -555,7 +555,7 @@ defmodule Stackfooter.VenueControllerTest do
     "symbol" => "NYC",
     "venue" => "OBEX"}
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> get("/ob/api/venues/obex/stocks/nyc/quote")
     resp = json_response(conn, 200)
     %{"ok" => resp_ok, "ask" => ask, "askDepth" => ask_depth, "askSize" => ask_size, "bid" => bid, "bidDepth" => bid_depth, "bidSize" => bid_size, "last" => last, "lastSize" => last_size} = resp
@@ -591,56 +591,56 @@ defmodule Stackfooter.VenueControllerTest do
     %{"ok" => resp_ok} = resp
     assert resp_ok
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> get("/ob/api/venues/obex/stocks/nyc")
     resp = json_response(conn, 200)
     assert resp
     %{"ok" => resp_ok} = resp
     assert resp_ok
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> get("/ob/api/venues/obex/stocks/nyc/quote")
     resp = json_response(conn, 200)
     assert resp
     %{"ok" => resp_ok} = resp
     assert resp_ok
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> get("/ob/api/venues/obex/stocks/nyc/orders/0")
     resp = json_response(conn, 200)
     assert resp
     %{"ok" => resp_ok} = resp
     assert resp_ok
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> get("/ob/api/venues/obex/heartbeat")
     resp = json_response(conn, 200)
     assert resp
     %{"ok" => resp_ok} = resp
     assert resp_ok
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> get("/ob/api/venues/obex/stocks")
     resp = json_response(conn, 200)
     assert resp
     %{"ok" => resp_ok} = resp
     assert resp_ok
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> get("/ob/api/venues/obex/accounts/admin/orders")
     resp = json_response(conn, 200)
     assert resp
     %{"ok" => resp_ok} = resp
     assert resp_ok
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> get("/ob/api/venues/obex/accounts/admin/stocks/nyc/orders")
     resp = json_response(conn, 200)
     assert resp
     %{"ok" => resp_ok} = resp
     assert resp_ok
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @apikey)
     |> delete("/ob/api/venues/obex/stocks/nyc/orders/0")
     resp = json_response(conn, 200)
     assert resp

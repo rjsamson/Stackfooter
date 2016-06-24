@@ -43,7 +43,7 @@ defmodule Stackfooter.ScoreControllerTest do
     scores = [%{"cash" => 1176, "name" => "A", "nav" => 1176, "positions" => [%{"price" => 4225, "qty" => 0, "stock" => "NYC"}]},
               %{"cash" => -1176, "name" => "RJSA", "nav" => -1176, "positions" => [%{"price" => 4225, "qty" => 0, "stock" => "NYC"}]}]
 
-    conn = get(conn(), "/ob/api/scores")
+    conn = get(build_conn(), "/ob/api/scores")
     resp = json_response(conn, 200)
 
     assert resp
@@ -52,7 +52,7 @@ defmodule Stackfooter.ScoreControllerTest do
   end
 
   test "returns the correct score for an individual user" do
-    conn = put_req_header(conn(), "x-starfighter-authorization", @admin_apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @admin_apikey)
     |> get("/ob/api/scores/admin")
     resp = json_response(conn, 200)
 
@@ -64,7 +64,7 @@ defmodule Stackfooter.ScoreControllerTest do
   end
 
   test "all scores route is unauthenticated" do
-    conn = get(conn(), "/ob/api/scores")
+    conn = get(build_conn(), "/ob/api/scores")
 
     resp = json_response(conn, 200)
 
@@ -73,7 +73,7 @@ defmodule Stackfooter.ScoreControllerTest do
   end
 
   test "individual scores route is authenticated" do
-    conn = put_req_header(conn(), "x-starfighter-authorization", @admin_apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @admin_apikey)
     |> get("/ob/api/scores/admin")
 
     resp = json_response(conn, 200)
@@ -81,14 +81,14 @@ defmodule Stackfooter.ScoreControllerTest do
     assert resp
     assert resp["ok"]
 
-    conn = get(conn(), "/ob/api/scores/admin")
+    conn = get(build_conn(), "/ob/api/scores/admin")
 
     resp = json_response(conn, 401)
 
     assert resp
     refute resp["ok"]
 
-    conn = put_req_header(conn(), "x-starfighter-authorization", @non_admin_apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @non_admin_apikey)
     |> get("/ob/api/scores/admin")
 
     resp = json_response(conn, 401)

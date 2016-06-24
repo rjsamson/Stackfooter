@@ -27,8 +27,14 @@ defmodule Stackfooter.ModelCase do
 
   setup tags do
     # unless tags[:async] do
-    #   Ecto.Adapters.SQL.restart_test_transaction(Stackfooter.Repo, [])
+      # Ecto.Adapters.SQL.restart_test_transaction(Stackfooter.Repo, [])
     # end
+
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Stackfooter.Repo)
+
+    unless tags[:async] do
+      Ecto.Adapters.SQL.Sandbox.mode(Stackfooter.Repo, {:shared, self()})
+    end
 
     :ok
   end

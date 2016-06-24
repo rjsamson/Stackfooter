@@ -31,7 +31,7 @@ defmodule Stackfooter.AdminControllerTest do
   end
 
   test "resets a venue" do
-    conn = put_req_header(conn(), "x-starfighter-authorization", @admin_apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @admin_apikey)
     |> post("/ob/api/admin/reset/obex")
 
     resp = json_response(conn, 200)
@@ -41,7 +41,7 @@ defmodule Stackfooter.AdminControllerTest do
   end
 
   test "only admin account can perform admin actions" do
-    conn = put_req_header(conn(), "x-starfighter-authorization", @non_admin_apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @non_admin_apikey)
     |> post("/ob/api/admin/reset/obex")
 
     resp = json_response(conn, 401)
@@ -52,7 +52,7 @@ defmodule Stackfooter.AdminControllerTest do
   end
 
   test "errors properly when a venue does not exist" do
-    conn = put_req_header(conn(), "x-starfighter-authorization", @admin_apikey)
+    conn = put_req_header(build_conn(), "x-starfighter-authorization", @admin_apikey)
     |> post("/ob/api/admin/reset/notavenue")
 
     resp = json_response(conn, 404)

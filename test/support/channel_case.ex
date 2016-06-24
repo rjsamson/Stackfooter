@@ -25,7 +25,7 @@ defmodule Stackfooter.ChannelCase do
       import Ecto.Changeset
       import Ecto.Query, only: [from: 1, from: 2]
 
-
+      import Stackfooter.TestHelpers
       # The default endpoint for testing
       @endpoint Stackfooter.Endpoint
     end

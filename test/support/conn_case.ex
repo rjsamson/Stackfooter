@@ -26,6 +26,7 @@ defmodule Stackfooter.ConnCase do
       import Ecto.Query, only: [from: 1, from: 2]
 
       import Stackfooter.Router.Helpers
+      import Stackfooter.TestHelpers
 
       # The default endpoint for testing
       @endpoint Stackfooter.Endpoint

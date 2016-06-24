@@ -1,7 +1,6 @@
 defmodule Stackfooter.Plugs.Api.Authenticate do
   use Stackfooter.Web, :controller
   alias Stackfooter.ApiKeyRegistry
-  alias Stackfooter.Repo
 
   def init(options) do
     options

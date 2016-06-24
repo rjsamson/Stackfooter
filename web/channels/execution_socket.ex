@@ -29,7 +29,7 @@ defmodule Stackfooter.ExecutionSocket do
     {:ok, req, state}
   end
 
-  def websocket_info({:execution, execution} = info, req, state) do
+  def websocket_info({:execution, execution} = _info, req, state) do
     resp =  case Poison.encode(execution) do
               {:ok, encoded} ->
                 encoded
@@ -40,7 +40,7 @@ defmodule Stackfooter.ExecutionSocket do
     {:reply, {:text, resp}, req, state}
   end
 
-  def websocket_info(info, req, state) do
+  def websocket_info(_info, req, state) do
     {:ok, req, state}
   end
 

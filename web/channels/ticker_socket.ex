@@ -16,11 +16,11 @@ defmodule Stackfooter.TickerSocket do
     end)
 
     case params do
-      %{"trading_account" => account, "venue" => venue, "stock" => stock} ->
+      %{"trading_account" => _account, "venue" => venue, "stock" => stock} ->
         # Uncomment for documented behavior instead of observed behavior
         # PubSub.subscribe Stackfooter.PubSub, self, "tickers:#{account}-#{venue}-#{stock}"
         PubSub.subscribe Stackfooter.PubSub, self, "tickers:#{venue}-#{stock}"
-      %{"trading_account" => account, "venue" => venue} ->
+      %{"trading_account" => _account, "venue" => venue} ->
         # Uncomment for documented behavior instead of observed behavior
         # PubSub.subscribe Stackfooter.PubSub, self, "tickers:#{account}-#{venue}"
         PubSub.subscribe Stackfooter.PubSub, self, "tickers:#{venue}"
@@ -34,7 +34,7 @@ defmodule Stackfooter.TickerSocket do
     {:ok, req, state}
   end
 
-  def websocket_info({:ticker, ticker} = info, req, state) do
+  def websocket_info({:ticker, ticker} = _info, req, state) do
     resp =  case Poison.encode(ticker) do
               {:ok, encoded} ->
                 encoded

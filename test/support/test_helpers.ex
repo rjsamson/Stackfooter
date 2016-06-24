@@ -1,8 +1,12 @@
 defmodule Stackfooter.TestHelpers do
   def insert_user(attrs \\ %{}) do
+    default_api_key = Application.get_env(:stackfooter, :bootstrap)[:default_api_key]
+    default_account = Application.get_env(:stackfooter, :bootstrap)[:default_account]
+
     params = Dict.merge(%{
-      username: "user#{Base.encode16(:crypto.rand_bytes(8))}",
-      password: "securepassword"
+      username: default_account,
+      password: "securepassword",
+      api_keys: [default_api_key]
       }, attrs)
 
     changeset = Stackfooter.User.changeset(%Stackfooter.User{}, params)

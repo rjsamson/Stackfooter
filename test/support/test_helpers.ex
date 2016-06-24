@@ -9,7 +9,7 @@ defmodule Stackfooter.TestHelpers do
     Stackfooter.Repo.insert!(changeset)
   end
 
-  def set_api_keys do
+  def reset_api_keys do
     Stackfooter.ApiKeyRegistry.reset_api_keys(Stackfooter.ApiKeyRegistry)
 
     default_api_key = Application.get_env(:stackfooter, :bootstrap)[:default_api_key]

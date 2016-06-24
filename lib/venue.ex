@@ -75,15 +75,24 @@ defmodule Stackfooter.Venue do
 
   def handle_call({:order_status, order_id, account}, from, {num_orders, _, venue, _, closed_orders, open_orders, _stock_quotes} = state) do
     spawn(fn ->
-      order =
-        open_orders
-        |> Enum.find(fn order -> order.id == order_id end)
 
-      if order == nil do
-        order =
-          closed_orders
-          |> Enum.find(fn order -> order.id == order_id end)
-      end
+      order =
+        case (open_orders |> Enum.find(fn order -> order.id == order_id end)) do
+          nil ->
+            (closed_orders |> Enum.find(fn order -> order.id == order_id end))
+          ord ->
+            ord
+        end
+
+      # order =
+      #   open_orders
+      #   |> Enum.find(fn order -> order.id == order_id end)
+      #
+      # if order == nil do
+      #   order =
+      #     closed_orders
+      #     |> Enum.find(fn order -> order.id == order_id end)
+      # end
 
       cond do
         order_id >= num_orders || order_id < 0 ->

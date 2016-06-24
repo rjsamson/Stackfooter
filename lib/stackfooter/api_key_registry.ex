@@ -25,8 +25,18 @@ defmodule Stackfooter.ApiKeyRegistry do
     end
   end
 
+  def reset_api_keys(pid) do
+    GenServer.call(pid, :reset)
+  end
+
+  def handle_call(:reset, _from, api_keys) do
+    :ets.delete_all_objects(api_keys)
+    {:reply, :ok, api_keys}
+  end
+
   def handle_call({:add_key, api_key, account}, _from, api_keys) do
     :ets.insert(api_keys, {api_key, account})
+
     {:reply, {:ok, {api_key, account}}, api_keys}
   end
 end

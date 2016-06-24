@@ -22,6 +22,7 @@ defmodule Stackfooter.ModelCase do
       import Ecto.Changeset
       import Ecto.Query, only: [from: 1, from: 2]
       import Stackfooter.ModelCase
+      import Stackfooter.TestHelpers
     end
   end
 

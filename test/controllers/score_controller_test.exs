@@ -6,6 +6,8 @@ defmodule Stackfooter.ScoreControllerTest do
   @non_admin_apikey "KVi7irGjY8ZhYg6B20QU7H6IIbhWmyt0"
 
   setup_all do
+    reset_api_keys()
+
     ApiKeyRegistry.add_key(Stackfooter.ApiKeyRegistry, "KVi7irGjY8ZhYg6B20QU7H6IIbhWmyt0", "rjsamson1234")
 
     {:ok, venue} = VenueRegistry.lookup(Stackfooter.VenueRegistry, "OBEX")

@@ -6,6 +6,8 @@ defmodule Stackfooter.AdminControllerTest do
   @non_admin_apikey "KVi7irGjY8ZhYg6B20QU7H6IIbhWmyt0"
 
   setup_all do
+    reset_api_keys()
+
     ApiKeyRegistry.add_key(Stackfooter.ApiKeyRegistry, "KVi7irGjY8ZhYg6B20QU7H6IIbhWmyt0", "rjsamson1234")
 
     :ok
@@ -26,6 +28,8 @@ defmodule Stackfooter.AdminControllerTest do
       :timer.sleep(20)
       Venue.place_order(venue, %{direction: "sell", symbol: "NYC", qty: 7, price: x, account: "admin", orderType: "limit"})
     end)
+
+    ApiKeyRegistry.add_key(Stackfooter.ApiKeyRegistry, "KVi7irGjY8ZhYg6B20QU7H6IIbhWmyt0", "rjsamson1234")
 
     :ok
   end

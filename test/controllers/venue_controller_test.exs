@@ -4,6 +4,11 @@ defmodule Stackfooter.VenueControllerTest do
 
   @apikey "4cy7uf63Lw2Sx6652YmLwBKy662weU4q"
 
+  setup_all do
+    reset_api_keys()
+    :ok
+  end
+
   test "returns all open venues" do
     conn = get(build_conn(), "/ob/api/venues/")
     resp = json_response(conn, 200)

@@ -10,7 +10,13 @@ defmodule Stackfooter.TestHelpers do
       }, attrs)
 
     changeset = Stackfooter.User.changeset(%Stackfooter.User{}, params)
-    Stackfooter.Repo.insert!(changeset)
+    user = Stackfooter.Repo.insert!(changeset)
+
+    api_keys = user.api_keys
+    acct = user.username
+
+    Enum.map(api_keys, fn(key) -> Stackfooter.ApiKeyRegistry.add_key(Stackfooter.ApiKeyRegistry, key, acct) end)
+    user
   end
 
   def reset_api_keys do

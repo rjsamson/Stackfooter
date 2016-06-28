@@ -1,4 +1,4 @@
-module Console.Models (..) where
+module Console.Models exposing (..)
 
 type alias Model =
   { symbol : String

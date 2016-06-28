@@ -1,7 +1,7 @@
-module Ticker.Actions (..) where
+module Ticker.Actions exposing (..)
 
 import Ticker.Models exposing (..)
 
-type Action
+type Msg
   = NoOp
   | UpdateTicker Model

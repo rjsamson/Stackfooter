@@ -1,42 +1,31 @@
-module Console (..) where
+module Console exposing (..)
 
-import StartApp
+import Html.App as Html
 import Effects exposing (Effects)
 import Console.View exposing (..)
-import Html exposing (Html)
 import Console.Actions exposing (..)
 import Console.Models exposing (..)
 
-update : Action -> Model -> ( Model, Effects Action )
-update action model =
-  case action of
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+  case msg of
     UpdateTicker newTicker ->
-      (newTicker, Effects.none)
+      (newTicker, Cmd.none)
 
     _ ->
-      (model, Effects.none)
+      (model, Cmd.none)
 
-init : ( Model, Effects action )
+init : ( Model, Cmd msg )
 init =
-  ( initialModel, Effects.none )
+  ( initialModel, Cmd.none )
 
-app : StartApp.App Model
-app =
-  StartApp.start
-    { init = init
-    , inputs = [tickertapeUpdate]
-    , view = view
-    , update = update
-    }
-
-tickertapeUpdate : Signal Action
+tickertapeUpdate : Signal Msg
 tickertapeUpdate =
-  Signal.map UpdateTicker tickertape
+  map UpdateTicker tickertape
 
-main : Signal.Signal Html
 main =
-  app.html
+  Html.program { init = init, update = update, view = view, subscriptions = \_ -> Sub.none }
 
-port tickertape : Signal Model
+port tickertape : (Model -> msg) -> Sub msg
 
 port apiKey : String

@@ -1,4 +1,4 @@
-module Ticker.View (..) where
+module Ticker.View exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (href, class)
@@ -6,37 +6,37 @@ import Ticker.Actions exposing (..)
 import Ticker.Models exposing (..)
 import String
 
-view : Signal.Address Action -> Model -> Html.Html
-view address model =
+view : Model -> Html Msg
+view model =
   div
     []
-    [ page address model ]
+    [ page model ]
 
-page : Signal.Address Action -> Model -> Html.Html
-page address model =
+page : Model -> Html Msg
+page model =
   div
     []
-    [ navbar address model
-    , tickerTable address model
+    [ navbar model
+    , tickerTable model
     ]
 
-navbar : Signal.Address Action -> Model -> Html.Html
-navbar address model =
+navbar : Model -> Html Msg
+navbar model =
   nav
     [ class "navbar navbar-default" ]
     [ div [ class "container-fluid" ]
       [ div [ class "navbar-header" ]
-        [ brandLink address model ]
+        [ brandLink model ]
       ]
     ]
 
-brandLink : Signal.Address Action -> Model -> Html.Html
-brandLink address model =
+brandLink : Model -> Html Msg
+brandLink model =
   a
     [ href "#", class "navbar-brand" ][ text "Stackfooter" ]
 
-tickerTable : Signal.Address Action -> Model -> Html.Html
-tickerTable address model =
+tickerTable : Model -> Html Msg
+tickerTable model =
   table
     [ class "table table-bordered" ]
     [ thead

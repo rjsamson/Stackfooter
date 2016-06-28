@@ -1,4 +1,4 @@
-module Console.View (..) where
+module Console.View exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (href, class)
@@ -8,20 +8,20 @@ import String
 import Date exposing (..)
 import Result
 
-view : Signal.Address Action -> Model -> Html.Html
-view address model =
+view : Model -> Html Msg
+view model =
   div
     []
-    [ page address model ]
+    [ page model ]
 
-page : Signal.Address Action -> Model -> Html.Html
-page address model =
+page : Model -> Html Msg
+page model =
   div
     []
-    [ tickerTable address model ]
+    [ tickerTable model ]
 
-tickerTable : Signal.Address Action -> Model -> Html.Html
-tickerTable address model =
+tickerTable : Model -> Html Msg
+tickerTable model =
   table
     [ class "table table-bordered" ]
     [ thead

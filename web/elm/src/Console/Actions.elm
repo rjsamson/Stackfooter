@@ -1,7 +1,7 @@
-module Console.Actions (..) where
+module Console.Actions exposing (..)
 
 import Console.Models exposing (..)
 
-type Action
+type Msg
   = NoOp
   | UpdateTicker Model

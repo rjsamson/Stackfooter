@@ -40,8 +40,8 @@ exports.config = {
     // Dependencies and current project directories to watch
     watched: [
       "web/static",
-      "test/static",
-      "web/elm/src"
+      "test/static"
+      // "web/elm/src"
     ],
 
     // Where to compile files to
@@ -50,11 +50,11 @@ exports.config = {
 
   // Configure your plugins
   plugins: {
-    elmBrunch: {
-      elmFolder: 'web/elm',
-      mainModules: ['src/Ticker.elm', 'src/Console.elm'],
-      outputFolder: '../static/vendor'
-    },
+    // elmBrunch: {
+    //   elmFolder: 'web/elm',
+    //   mainModules: ['src/Ticker.elm', 'src/Console.elm'],
+    //   outputFolder: '../static/vendor'
+    // },
     babel: {
       presets: ["es2015", "react", "stage-2", "stage-0"],
       // Do not use ES6 compiler in vendor code
